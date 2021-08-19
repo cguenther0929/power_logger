@@ -1,0 +1,3 @@
+uart.c:10:6:print_float	24	static
+uart.c:29:6:print_16b_integer	24	static
+uart.c:51:6:print_string	16	static
