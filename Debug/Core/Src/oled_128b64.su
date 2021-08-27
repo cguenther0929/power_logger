@@ -1,0 +1,6 @@
+oled_128b64.c:12:6:display_oled_init	24	static
+oled_128b64.c:82:6:clearDisplay	8	static
+oled_128b64.c:86:6:display_oled_drawBitmap	32	static
+oled_128b64.c:105:6:drawPixel	16	static
+oled_128b64.c:145:6:ssd1306_commandList	24	static,ignoring_inline_asm
+oled_128b64.c:182:6:ssd1306_command1	24	static,ignoring_inline_asm

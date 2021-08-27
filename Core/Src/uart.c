@@ -26,7 +26,7 @@ void print_float (float number, uint8_t action) {
     }
 }
 
-void print_16b_integer (uint16_t number, uint8_t action) {
+void print_16b_binary_rep (uint16_t number, uint8_t action) {
     uint16_t tx_char;      
     uint16_t i;         
 
@@ -52,6 +52,7 @@ void print_string(const char * s, uint8_t action) {
 
     while(*s != '\0') {
         HAL_UART_Transmit(&huart1, (uint8_t *) s, (uint16_t) 0x01, HAL_MAX_DELAY);
+        s++;
     }
 
     /* CHECK TO SEE IF THE USER WISHES TO CREATE A NEW LINE */

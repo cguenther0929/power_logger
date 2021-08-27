@@ -28,11 +28,35 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+struct timing       time;
+struct oled         oled;  
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+#define LOGO_HEIGHT   16
+#define LOGO_WIDTH    16
+
+static const unsigned char logo_bmp[] =
+{ 0b00000000, 0b11000000,
+  0b00000001, 0b11000000,
+  0b00000001, 0b11000000,
+  0b00000011, 0b11100000,
+  0b11110011, 0b11100000,
+  0b11111110, 0b11111000,
+  0b01111110, 0b11111111,
+  0b00110011, 0b10011111,
+  0b00011111, 0b11111100,
+  0b00001101, 0b01110000,
+  0b00011011, 0b10100000,
+  0b00111111, 0b11100000,
+  0b00111111, 0b11110000,
+  0b01111100, 0b11110000,
+  0b01110000, 0b01110000,
+  0b00000000, 0b00110000 };
+
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -85,6 +109,10 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  time.led_fast_blink = false;
+  time.flag_10ms_tick = false;
+  time.flag_100ms_tick = false;
+  time.flag_500ms_tick = false;
 
   /* USER CODE END Init */
 
@@ -103,6 +131,40 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  print_string("Chip Reset.",LF);
+
+  /**
+   *  TODO This is for reference only
+   *
+   *  Transmitting and receiving SPI data
+   *  The following is from: https://deepbluembedded.com/stm32-spi-tutorial/
+   *  HAL_SPI_Transmit(SPI_HandleTypeDef * hspi1, uint8_t * pData, uint16_t Size, uint32_t Timeout);
+   *
+   *  HAL_SPI_Receive(SPI_HandleTypeDef * &hspi1, uint8_t * pData, uint16_t Size, uint32_t Timeout);
+   *
+   *  HAL_SPI_TransmitReceive(SPI_HandleTypeDef * hspi1, uint8_t * pTxData, uint8_t * pRxData, uint16_t Size, uint32_t Timeout);
+   *
+   *  TODO: Temp, try to send something out the SPI port
+   *  HAL_SPI_TransmitReceive(SPI_HandleTypeDef * hspi1, uint8_t * pTxData, uint8_t * pRxData, uint16_t Size, uint32_t Timeout);
+   *
+   *  //	  HAL_SPI_TransmitReceive(&hspi1, 0x55, &spi_rx_data, 0x08, 0.01);
+   *
+   *  */
+
+  /**
+   * Draw Spalsh screen
+   */
+  // TODO need to define bitmap image, screen width, and splash screen dimensions
+  // display_oled_drawBitmap((oled.screen_width - BITMAP_WIDTH) / 2, (oled.screen_height - BITMAP_HEIGHT) / 2,
+  //             oled.splash_screen_data, oled.splash_screen_width, oled.splash_screen_height, 1);
+
+
+  display_oled_drawBitmap(
+    (oled.screen_width  - LOGO_WIDTH ) / 2,
+    (oled.screen_height - LOGO_HEIGHT) / 2,
+    logo_bmp, LOGO_WIDTH, LOGO_HEIGHT, 1);
+
+
 
   /* USER CODE END 2 */
 
@@ -110,6 +172,24 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    
+    if(time.flag_10ms_tick) {
+      time.flag_10ms_tick = false;
+      // capture_accel_data();  // TODO remove this line?
+    }
+
+    if(time.flag_100ms_tick) {
+      time.flag_100ms_tick = false;
+    }
+
+    if(time.flag_500ms_tick) {
+      time.flag_500ms_tick = false;
+      // TODO remove following lines
+      // print_string("X-Axis: ",0); print_16b_binary_rep(accel.accel_x_data,LF);
+      // print_string("Y-Axis: ",0); print_16b_binary_rep(accel.accel_y_data,LF);
+      // print_string("Z-Axis: ",0); print_16b_binary_rep(accel.accel_z_data,LF);
+    }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

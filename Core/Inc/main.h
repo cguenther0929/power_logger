@@ -32,6 +32,10 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdbool.h>
+#include "timer.h"
+#include "uart.h"
+#include "oled_128b64.h"
 
 /* USER CODE END Includes */
 
@@ -62,8 +66,6 @@ void Error_Handler(void);
 #define EN_DUT_PWR_GPIO_Port GPIOE
 #define SWO_Pin GPIO_PIN_9
 #define SWO_GPIO_Port GPIOB
-#define SWOB3_Pin GPIO_PIN_3
-#define SWOB3_GPIO_Port GPIOB
 #define SWCLK_Pin GPIO_PIN_14
 #define SWCLK_GPIO_Port GPIOA
 #define SWDIO_Pin GPIO_PIN_13
