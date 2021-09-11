@@ -8,10 +8,12 @@
 #ifndef INC_FONT_H_
 #define INC_FONT_H_
 
+#include <stdint.h>
+
 /**
  * Font data stored PER GLYPH
  */
-typedef struct {
+typedef struct _tgfxglyph {
   uint16_t bitmapOffset; ///< Pointer into GFXfont->bitmap
   uint8_t width;         ///< Bitmap dimensions in pixels
   uint8_t height;        ///< Bitmap dimensions in pixels
@@ -23,7 +25,7 @@ typedef struct {
 /**
  * Data stored for FONT AS A WHOLE
  */
-typedef struct {
+typedef struct _tgfxfont {
   uint8_t *bitmap;  ///< Glyph bitmaps, concatenated
   GFXglyph *glyph;  ///< Glyph array
   uint16_t first;   ///< ASCII extents (first char)

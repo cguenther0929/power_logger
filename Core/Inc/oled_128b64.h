@@ -183,7 +183,7 @@ void ssd1306_drawChar(int16_t x, int16_t y, unsigned char c,
  * @return  nothing  
  * 
 */
-void setFont(const GFXfont *f);
+void setFont(GFXfont *f);
 
 
 /**

@@ -6,9 +6,6 @@
   ******************************************************************************
   */
 
-// #ifndef INC_FREESANS9PT7B_H_
-// #define INC_FREESANS9PT7B_H_
-
 #include "font.h"
 
 const uint8_t FreeSans9pt7bBitmaps[] = {
@@ -107,7 +104,8 @@ const uint8_t FreeSans9pt7bBitmaps[] = {
     0x61, 0xB0, 0xD0, 0x38, 0x1C, 0x0C, 0x06, 0x03, 0x01, 0x03, 0x00, 0xFE,
     0x0C, 0x30, 0xC1, 0x86, 0x18, 0x20, 0xC1, 0xFC, 0x36, 0x66, 0x66, 0x6E,
     0xCE, 0x66, 0x66, 0x66, 0x30, 0xFF, 0xFF, 0xFF, 0xFF, 0xC0, 0xC6, 0x66,
-    0x66, 0x67, 0x37, 0x66, 0x66, 0x66, 0xC0, 0x61, 0x24, 0x38};
+    0x66, 0x67, 0x37, 0x66, 0x66, 0x66, 0xC0, 0x61, 0x24, 0x38
+};
 
 const GFXglyph FreeSans9pt7bGlyphs[] = {
     {0, 0, 0, 5, 0, 1},        // 0x20 ' '
@@ -204,10 +202,11 @@ const GFXglyph FreeSans9pt7bGlyphs[] = {
     {1124, 4, 17, 6, 1, -12},  // 0x7B '{'
     {1133, 2, 17, 4, 2, -12},  // 0x7C '|'
     {1138, 4, 17, 6, 1, -12},  // 0x7D '}'
-    {1147, 7, 3, 9, 1, -7}};   // 0x7E '~'
+    {1147, 7, 3, 9, 1, -7}     // 0x7E '~'
+};   // 0x7E '~'
 
-const GFXfont FreeSans9pt7b = {(uint8_t *)FreeSans9pt7bBitmaps,
-                                       (GFXglyph *)FreeSans9pt7bGlyphs, 0x20,
-                                       0x7E, 22};
-
-// #endif
+GFXfont FreeSans9pt7b = {
+  (uint8_t *)FreeSans9pt7bBitmaps,
+  (GFXglyph *)FreeSans9pt7bGlyphs, 0x20,
+  0x7E, 22
+};

@@ -312,7 +312,7 @@ void ssd1306_drawChar(int16_t x, int16_t y, unsigned char c,
 }
 
 //TODO clean up stale code in the following
-void setFont(const GFXfont *f) {
+void setFont(GFXfont *f) {
 //   if (f) {          // Font struct pointer passed in?
 //     if (!font) { // And no current font struct?
       // Switching from classic to new font behavior.
