@@ -1,3 +1,16 @@
+/**
+  ******************************************************************************
+  * @file           : FreeSans9pt7b.h
+  * @brief          : Header file for Sans 9pt font
+  *                     Thank you Adafruit!
+  ******************************************************************************
+  */
+
+// #ifndef INC_FREESANS9PT7B_H_
+// #define INC_FREESANS9PT7B_H_
+
+#include "font.h"
+
 const uint8_t FreeSans9pt7bBitmaps[] = {
     0xFF, 0xFF, 0xF8, 0xC0, 0xDE, 0xF7, 0x20, 0x09, 0x86, 0x41, 0x91, 0xFF,
     0x13, 0x04, 0xC3, 0x20, 0xC8, 0xFF, 0x89, 0x82, 0x61, 0x90, 0x10, 0x1F,
@@ -96,7 +109,7 @@ const uint8_t FreeSans9pt7bBitmaps[] = {
     0xCE, 0x66, 0x66, 0x66, 0x30, 0xFF, 0xFF, 0xFF, 0xFF, 0xC0, 0xC6, 0x66,
     0x66, 0x67, 0x37, 0x66, 0x66, 0x66, 0xC0, 0x61, 0x24, 0x38};
 
-const GFXglyph FreeSans9pt7bGlyphs[] PROGMEM = {
+const GFXglyph FreeSans9pt7bGlyphs[] = {
     {0, 0, 0, 5, 0, 1},        // 0x20 ' '
     {0, 2, 13, 6, 2, -12},     // 0x21 '!'
     {4, 5, 4, 6, 1, -12},      // 0x22 '"'
@@ -197,4 +210,4 @@ const GFXfont FreeSans9pt7b = {(uint8_t *)FreeSans9pt7bBitmaps,
                                        (GFXglyph *)FreeSans9pt7bGlyphs, 0x20,
                                        0x7E, 22};
 
-// Approx. 1822 bytes
+// #endif

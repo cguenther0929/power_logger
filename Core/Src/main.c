@@ -109,6 +109,10 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+
+  setFont(&FreeSans9pt7b);
+  display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
+
   time.led_fast_blink = false;
   time.flag_10ms_tick = false;
   time.flag_100ms_tick = false;

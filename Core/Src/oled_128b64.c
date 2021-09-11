@@ -9,15 +9,36 @@
 
 struct oled     oled;   
 
+// extern const GFXfont FreeSans9pt7b;
+
+
+#ifndef _swap_int16_t
+#define _swap_int16_t(a, b)                                                    \
+    {                                                                            \
+        int16_t t = a;                                                             \
+        a = b;                                                                     \
+        b = t;                                                                     \
+    }
+#endif
+
 void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
 
     oled.screen_width = w;
     oled.screen_height = h;
+
+
+    /**
+     * Define a default 
+     * oledfont
+     */
+    // setFont(&FreeSans9pt7b);
+
+    // oled.oledfont = FreeSans9pt7b;
     
     /**
      * Call function to clear the display
      */
-    // display_oled_clear();       //TODO need to define this function
+    oled_clear();       //TODO need to define this function
 
 
     /**
@@ -79,7 +100,7 @@ void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
     
 }
 
-void clearDisplay(void) {
+void oled_clear(void) {
     memset(oled.screen_buffer, 0, oled.screen_width * ((oled.screen_height + 7) / 8));
 }
 
@@ -213,7 +234,7 @@ void ssd1306_command1(uint8_t command) {
 //TODO this function was copied over, but needs to be cleaned up for
 //TODO this application 
 void ssd1306_drawChar(int16_t x, int16_t y, unsigned char c,
-                            uint8_t size_x,
+                            uint16_t color, uint8_t size_x,
                             uint8_t size_y) {
 
     /** 
@@ -223,15 +244,26 @@ void ssd1306_drawChar(int16_t x, int16_t y, unsigned char c,
      * 
     */
 
-    c -= (uint8_t)pgm_read_byte(&gfxFont->first);
-    GFXglyph *glyph = pgm_read_glyph_ptr(gfxFont, c);
-    uint8_t *bitmap = pgm_read_bitmap_ptr(gfxFont);
+    c -= (uint8_t)(oled.oledfont -> first);
+    
+    // GFXglyph *glyph = pgm_read_glyph_ptr(oled.oledfont, c);       //TODO can remove this line
+    GFXglyph *glyph = oled.oledfont -> glyph + c;
 
-    uint16_t bo = pgm_read_word(&glyph->bitmapOffset);
-    uint8_t w = pgm_read_byte(&glyph->width), h = pgm_read_byte(&glyph->height);
-    int8_t xo = pgm_read_byte(&glyph->xOffset),
-           yo = pgm_read_byte(&glyph->yOffset);
+
+
+    // uint8_t *bitmap = pgm_read_bitmap_ptr(oled.oledfont);  //TODO can remove this line
+    uint8_t *bitmap = oled.oledfont -> bitmap;
+
+    uint16_t bo = (uint16_t)(&glyph->bitmapOffset);
+
+    uint8_t w = (uint8_t)(&glyph -> width),
+            h = (uint8_t)(&glyph -> height);
+
+    int8_t xo = (int8_t)(&glyph -> xOffset),
+           yo = (int8_t)(&glyph -> yOffset);
+    
     uint8_t xx, yy, bits = 0, bit = 0;
+    
     int16_t xo16 = 0, yo16 = 0;
 
     if (size_x > 1 || size_y > 1) {
@@ -261,13 +293,13 @@ void ssd1306_drawChar(int16_t x, int16_t y, unsigned char c,
     for (yy = 0; yy < h; yy++) {
       for (xx = 0; xx < w; xx++) {
         if (!(bit++ & 7)) {
-          bits = pgm_read_byte(&bitmap[bo++]);
+          bits = (uint8_t)(&bitmap[bo++]);
         }
         if (bits & 0x80) {
           if (size_x == 1 && size_y == 1) {
-            writePixel(x + xo + xx, y + yo + yy, color);
+            drawPixel(x + xo + xx, y + yo + yy, color);
           } else {
-            writeFillRect(x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
+            fillRect(x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
                           size_x, size_y, color);
           }
         }
@@ -279,18 +311,76 @@ void ssd1306_drawChar(int16_t x, int16_t y, unsigned char c,
 
 }
 
-
+//TODO clean up stale code in the following
 void setFont(const GFXfont *f) {
 //   if (f) {          // Font struct pointer passed in?
-//     if (!gfxFont) { // And no current font struct?
+//     if (!font) { // And no current font struct?
       // Switching from classic to new font behavior.
       // Move cursor pos down 6 pixels so it's on baseline.
 //       oled.cursor_y += 6;
 //     }
-//   } else if (gfxFont) { // NULL passed.  Current font struct defined?
+//   } else if (font) { // NULL passed.  Current oledfont struct defined?
     // Switching from new to classic (5x7) font behavior.
     // Move cursor pos up 6 pixels so it's at top-left of char.
     oled.cursor_y -= 6;
 //   }
-    old.gfxFont = (GFXfont *)f;
+    oled.oledfont = f;
+}
+
+void fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+                            uint16_t color) {
+  for (int16_t i = x; i < x + w; i++) {
+    drawFastVLine(i, y, h, color);
+  }
+}
+
+
+void drawFastVLine(int16_t x, int16_t y, int16_t h,
+                                 uint16_t color) {
+    writeLine(x, y, x, y + h - 1, color);
+}
+
+
+
+void writeLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                             uint16_t color) {
+  
+    int16_t steep = abs(y1 - y0) > abs(x1 - x0);
+    if (steep) {
+        _swap_int16_t(x0, y0);
+        _swap_int16_t(x1, y1);
+    }
+
+    if (x0 > x1) {
+        _swap_int16_t(x0, x1);
+        _swap_int16_t(y0, y1);
+    }
+
+    int16_t dx, dy;
+    dx = x1 - x0;
+    dy = abs(y1 - y0);
+
+    int16_t err = dx / 2;
+    int16_t ystep;
+
+    if (y0 < y1) {
+        ystep = 1;
+    } 
+    else {
+        ystep = -1;
+    }
+
+    for (; x0 <= x1; x0++) {
+        if (steep) {
+            drawPixel(y0, x0, color);
+        } 
+        else {
+            drawPixel(x0, y0, color);
+        }
+        err -= dy;
+        if (err < 0) {
+            y0 += ystep;
+            err += dx;
+        }
+    }
 }

@@ -1,17 +1,19 @@
-/*
- * oled_128b64.h
- *
- *  Created on: Aug 18, 2021
- *      Author: Clinton Guenther
- */
+/**
+  ******************************************************************************
+  * @file           : oled_128b64.h
+  * @brief          : Header for oled routines 
+  ******************************************************************************
+  */
 
 #ifndef INC_OLED_128B64_H_
 #define INC_OLED_128B64_H_
 
 #include "stm32f1xx_hal.h"
+#include "font.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 extern I2C_HandleTypeDef hi2c2;
 
@@ -58,7 +60,7 @@ struct oled {
 
     uint8_t * screen_buffer;
 
-    GFXfont * gfxFont;          // Pointer to font maps
+    GFXfont * oledfont;          // Pointer to font data
 
 
 };
@@ -144,6 +146,76 @@ void ssd1306_command1(uint8_t command);
  * 
 */
 bool drawPixel(int16_t x, int16_t y, uint8_t color);
+
+
+/**
+ * FUNCTION: void ssd1306_drawChar(int16_t x, int16_t y, unsigned char c,
+ *                          uint16_t color, uint8_t size_x,
+ *                          uint8_t size_y);
+ * --------------------
+ * @brief   Draw a single character at the defined 
+ *          x/y location.    
+ * 
+ * @param   x       x location of character
+ * @param   y       y location of character
+ * @param   c       character to be drawn. 
+ * @param   size_x  Character scaling (1 is normal
+ *                  size, while 2 is 2x) 
+ * @param   size_y  Character scaling (1 is normal
+ *                  size, while 2 is 2x) 
+ * 
+ * @return  nothing  
+ * 
+*/
+void ssd1306_drawChar(int16_t x, int16_t y, unsigned char c,
+                            uint16_t color, uint8_t size_x,
+                            uint8_t size_y);
+
+/**
+ * FUNCTION: void setFont (const GFXfont *f)
+ * --------------------
+ * @brief   Define the font to be used.  Associated 
+ *          header file shall be included.  
+ * 
+ * @param   f   Name of font to be used.
+ *              i.e. FreeSans9pt7b
+ * 
+ * @return  nothing  
+ * 
+*/
+void setFont(const GFXfont *f);
+
+
+/**
+ * FUNCTION: void fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+                            uint16_t color);
+ * --------------------
+ * @brief   Make solid rectangle 
+ * 
+ * @param   x   Upper left location of 
+ *              rectangle (x-coordinate).
+ * @param   y   Upper left location of 
+ *              rectangle (y-coordinate).
+ * @param   w   Width of rectangle (pixels)
+ * @param   h   Height of rectangle (pixels)
+ * @param   color   Fill color 
+ * 
+ * @return  nothing  
+ * 
+*/
+void fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+                            uint16_t color);
+
+//TODO need to comment
+void drawFastVLine(int16_t x, int16_t y, int16_t h,
+                                 uint16_t color);
+
+//TODO need to comment 
+void writeLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                             uint16_t color);
+
+//TODO need to comment
+void oled_clear(void);
 
 
 #endif /* INC_OLED_128B64_H_ */

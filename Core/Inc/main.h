@@ -36,6 +36,8 @@ extern "C" {
 #include "timer.h"
 #include "uart.h"
 #include "oled_128b64.h"
+#include "font.h"
+#include "config.h"
 
 /* USER CODE END Includes */
 
