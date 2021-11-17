@@ -2,7 +2,7 @@
  * uart.h
  *
  *  Created on: May 24, 2021
- *      Author: CJGWORK
+ *      Author: C. Guenther
  */
 
 #ifndef INC_UART_H_

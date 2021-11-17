@@ -2,13 +2,13 @@
  * uart.c
  *
  *  Created on: May 24, 2021
- *      Author: CJGWORK
+ *      Author: C. Guenther
  */
 
 #include "uart.h"
 
 void print_float (float number, uint8_t action) {
-    uint8_t temp_buffer[8];        //Define the array that will hold the ASCII values
+    char temp_buffer[8];        //Define the array that will hold the ASCII values
 
     /* USE SPRINT F TO BUILD THE ARRAY OF ASCII CHARACTERS */
     sprintf((char *)temp_buffer, "%.4f", number);   //f tells the function we want to print a float value

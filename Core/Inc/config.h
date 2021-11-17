@@ -2,7 +2,7 @@
  * config.h
  *
  *  Created on: Sep 2, 2021
- *      Author: clint
+ *      Author: C. Guenther
  */
 
 #ifndef INC_CONFIG_H_

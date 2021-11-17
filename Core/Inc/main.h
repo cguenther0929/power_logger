@@ -33,11 +33,13 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
+#include "string.h"
 #include "timer.h"
 #include "uart.h"
 #include "oled_128b64.h"
 #include "font.h"
 #include "config.h"
+#include "ad4681.h"
 
 /* USER CODE END Includes */
 
@@ -60,6 +62,15 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+/** 
+ * TODO need to comment the following
+ */
+void blocking_delay_10ms_ticks (uint16_t ticks);
+
+/** 
+ * TODO need to comment the following
+ */
+void blocking_delay_500ms_ticks(uint16_t ticks);
 
 /* USER CODE END EFP */
 
@@ -72,30 +83,42 @@ void Error_Handler(void);
 #define SWCLK_GPIO_Port GPIOA
 #define SWDIO_Pin GPIO_PIN_13
 #define SWDIO_GPIO_Port GPIOA
+#define PB1_n_Pin GPIO_PIN_3
+#define PB1_n_GPIO_Port GPIOE
+#define PB2_n_Pin GPIO_PIN_4
+#define PB2_n_GPIO_Port GPIOE
 #define HLTH_LED_Pin GPIO_PIN_1
 #define HLTH_LED_GPIO_Port GPIOE
 #define CONSOLE_TX_Pin GPIO_PIN_9
 #define CONSOLE_TX_GPIO_Port GPIOA
-#define PB1_ACTIVE_Pin GPIO_PIN_0
-#define PB1_ACTIVE_GPIO_Port GPIOE
+#define PB3_n_Pin GPIO_PIN_5
+#define PB3_n_GPIO_Port GPIOE
 #define CONSOLE_RXD_Pin GPIO_PIN_10
 #define CONSOLE_RXD_GPIO_Port GPIOA
+#define PB4_n_Pin GPIO_PIN_6
+#define PB4_n_GPIO_Port GPIOE
 #define IN_FD_V_Pin GPIO_PIN_0
 #define IN_FD_V_GPIO_Port GPIOC
 #define ADC_SPI1_CSn_Pin GPIO_PIN_4
 #define ADC_SPI1_CSn_GPIO_Port GPIOA
+#define LED4_Pin GPIO_PIN_10
+#define LED4_GPIO_Port GPIOE
 #define SD_SPI2_MOSI_Pin GPIO_PIN_15
 #define SD_SPI2_MOSI_GPIO_Port GPIOB
 #define REV_2_Pin GPIO_PIN_15
 #define REV_2_GPIO_Port GPIOD
 #define ADC_SPI1_CLK_Pin GPIO_PIN_5
 #define ADC_SPI1_CLK_GPIO_Port GPIOA
+#define LED1_Pin GPIO_PIN_7
+#define LED1_GPIO_Port GPIOE
 #define SD_SPI2_MISO_Pin GPIO_PIN_14
 #define SD_SPI2_MISO_GPIO_Port GPIOB
 #define REV_1_Pin GPIO_PIN_14
 #define REV_1_GPIO_Port GPIOD
 #define ADC_SPI1_MISO_Pin GPIO_PIN_6
 #define ADC_SPI1_MISO_GPIO_Port GPIOA
+#define LED2_Pin GPIO_PIN_8
+#define LED2_GPIO_Port GPIOE
 #define DISP_I2C2_SCL_Pin GPIO_PIN_10
 #define DISP_I2C2_SCL_GPIO_Port GPIOB
 #define SD_SPI2_CLK_Pin GPIO_PIN_13
@@ -106,6 +129,8 @@ void Error_Handler(void);
 #define ADC_ALRTn_GPIO_Port GPIOA
 #define ADC_SPI1_MOSI_Pin GPIO_PIN_7
 #define ADC_SPI1_MOSI_GPIO_Port GPIOA
+#define LED3_Pin GPIO_PIN_9
+#define LED3_GPIO_Port GPIOE
 #define DISP_I2C2_SDA_Pin GPIO_PIN_11
 #define DISP_I2C2_SDA_GPIO_Port GPIOB
 #define SD_SPI2_CSn_Pin GPIO_PIN_12

@@ -13,7 +13,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
+// #include <math.h>
+#include <stdlib.h>
 
 extern I2C_HandleTypeDef hi2c2;
 
@@ -55,12 +56,17 @@ struct oled {
     uint8_t screen_width;
     uint8_t screen_height;
 
+    uint8_t textsize_x;
+    uint8_t textsize_y;
+
+    bool    wrap_text;
+
     uint8_t cursor_y;           // Current position of the y-cursor
     uint8_t cursor_x;           // Current position of the x-cursor
 
     uint8_t * screen_buffer;
 
-    GFXfont * oledfont;          // Pointer to font data
+    GFXfont * oled_font;          // Pointer to font data
 
 
 };
@@ -83,6 +89,17 @@ struct oled {
 void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h );
 
 
+
+/**************************************************************************/
+/*!
+//TODO cleanup comment
+    @brief   Set text 'magnification' size. Each increase in s makes 1 pixel
+   that much bigger.
+    @param  s_x  Desired text width magnification level in X-axis. 1 is default
+    @param  s_y  Desired text width magnification level in Y-axis. 1 is default
+*/
+/**************************************************************************/
+void setTextSize (uint8_t s_x, uint8_t s_y);
 
 /**
  * FUNCTION: display_oled_drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[],
@@ -147,9 +164,11 @@ void ssd1306_command1(uint8_t command);
 */
 bool drawPixel(int16_t x, int16_t y, uint8_t color);
 
+//TODO need to cleanup following function
+void writeOledString(const char * c, uint8_t color);
 
 /**
- * FUNCTION: void ssd1306_drawChar(int16_t x, int16_t y, unsigned char c,
+ * FUNCTION: void drawChar(int16_t x, int16_t y, unsigned char c,
  *                          uint16_t color, uint8_t size_x,
  *                          uint8_t size_y);
  * --------------------
@@ -167,7 +186,7 @@ bool drawPixel(int16_t x, int16_t y, uint8_t color);
  * @return  nothing  
  * 
 */
-void ssd1306_drawChar(int16_t x, int16_t y, unsigned char c,
+void drawChar(int16_t x, int16_t y, unsigned char c,
                             uint16_t color, uint8_t size_x,
                             uint8_t size_y);
 
@@ -211,11 +230,48 @@ void drawFastVLine(int16_t x, int16_t y, int16_t h,
                                  uint16_t color);
 
 //TODO need to comment 
-void writeLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                              uint16_t color);
 
 //TODO need to comment
 void oled_clear(void);
 
+
+/**
+ * FUNCTION: void fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+ *                        uint16_t color);
+ * --------------------
+ * 
+ * @brief  Push data currently in RAM to SSD1306 display.
+ * 
+ * @note   Drawing operations are not visible until this function is
+ * called. Call after each graphics command, or after a whole set
+ * of graphics commands.
+ * 
+ * @return nothing
+ * 
+*/
+void updateDisplay(void);
+
+/**************************************************************************/
+/*!
+//TODO: need to cleanup this comment 
+   @brief    Fill the screen completely with one color. Update in subclasses if
+   desired!
+    @param    color 16-bit 5-6-5 Color to fill with
+*/
+/**************************************************************************/
+void fillScreen(uint16_t color);
+
+
+/**************************************************************************/
+/*!
+//TODO need to cleanup comment
+    @brief  Print one byte/character of data, used to support print()
+    @param  c  The 8-bit ascii character to write
+    @param  color Options are SSD1306_WHITE, SSD1306_BLACK, SSD1306_INVERSE
+*/
+/**************************************************************************/
+void writeStringHelper(uint8_t c, uint8_t color);
 
 #endif /* INC_OLED_128B64_H_ */

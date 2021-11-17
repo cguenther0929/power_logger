@@ -66,7 +66,7 @@ main-build: power_logger.elf secondary-outputs
 
 # Tool invocations
 power_logger.elf: $(OBJS) $(USER_OBJS) C:\Users\clint\STM32CubeIDE\workspace_1.6.1\power_logger\STM32F105VBHX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "power_logger.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\clint\STM32CubeIDE\workspace_1.6.1\power_logger\STM32F105VBHX_FLASH.ld" --specs=nosys.specs -Wl,-Map="power_logger.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "power_logger.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\clint\STM32CubeIDE\workspace_1.6.1\power_logger\STM32F105VBHX_FLASH.ld" --specs=nosys.specs -Wl,-Map="power_logger.map" -Wl,--gc-sections -static -u_printf_float --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

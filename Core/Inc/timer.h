@@ -2,13 +2,15 @@
  * timer.h
  *
  *  Created on: May 16, 2021
- *      Author: CJGWORK
+ *      Author: C. Guenther
  */
 
 #ifndef INC_TIMER_H_
 #define INC_TIMER_H_
 
 #include "stdbool.h"
+#include "stm32f1xx_hal.h"
+extern TIM_HandleTypeDef htim2;
 
 struct timing {
 	uint8_t		ticks10ms;
@@ -22,6 +24,11 @@ struct timing {
 	bool		led_fast_blink;
 
 };
+
+/**
+ * TODO NEED TO COMMENT 
+ */
+void blocking_us_delay (uint16_t us);
 
 
 #endif /* INC_TIMER_H_ */

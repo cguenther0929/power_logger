@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "fatfs_sd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,11 +69,22 @@ ADC_HandleTypeDef hadc1;
 
 I2C_HandleTypeDef hi2c2;
 
+SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi2;
+
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
+FATFS fs;
+FATFS * pfs;
+FIL fil;
+FRESULT fres;
+DWORD fre_clust;
+uint32_t total, free_space;
+char sd_buffer[100];
 
 /* USER CODE END PV */
 
@@ -84,6 +95,9 @@ static void MX_ADC1_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_SPI1_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -100,6 +114,7 @@ static void MX_TIM1_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  ad4681Data * a2d;
 
   /* USER CODE END 1 */
 
@@ -118,6 +133,10 @@ int main(void)
   time.flag_100ms_tick = false;
   time.flag_500ms_tick = false;
 
+  HAL_TIM_Base_Start(&htim2);			// Start timer #2 for us delay timer
+  init_ad4681 ();                 // Initialize the A2D
+
+  a2d -> cs_res_f = 0.022;        // Set this to a default value
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -134,26 +153,60 @@ int main(void)
   MX_FATFS_Init();
   MX_USART1_UART_Init();
   MX_TIM1_Init();
+  MX_SPI1_Init();
+  MX_TIM2_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   print_string("Chip Reset.",LF);
 
   /**
-   *  TODO This is for reference only
-   *
-   *  Transmitting and receiving SPI data
-   *  The following is from: https://deepbluembedded.com/stm32-spi-tutorial/
-   *  HAL_SPI_Transmit(SPI_HandleTypeDef * hspi1, uint8_t * pData, uint16_t Size, uint32_t Timeout);
-   *
-   *  HAL_SPI_Receive(SPI_HandleTypeDef * &hspi1, uint8_t * pData, uint16_t Size, uint32_t Timeout);
-   *
-   *  HAL_SPI_TransmitReceive(SPI_HandleTypeDef * hspi1, uint8_t * pTxData, uint8_t * pRxData, uint16_t Size, uint32_t Timeout);
-   *
-   *  TODO: Temp, try to send something out the SPI port
-   *  HAL_SPI_TransmitReceive(SPI_HandleTypeDef * hspi1, uint8_t * pTxData, uint8_t * pRxData, uint16_t Size, uint32_t Timeout);
-   *
-   *  //	  HAL_SPI_TransmitReceive(&hspi1, 0x55, &spi_rx_data, 0x08, 0.01);
-   *
-   *  */
+   * TODO BEGIN
+   * 
+   * In the following block of code we are testing
+   * the ability to write to the SD card
+  */
+
+  /* Mount SD Card */ 
+  if ( f_mount ( & fs ,  "" ,  0 )  !=  FR_OK ) 
+    blocking_us_delay(20);
+    // _Error_Handler ( __FILE__ , __LINE__ ) ; 
+  
+  /* Open file to write */ 
+  if ( f_open ( & fil ,  "first.txt" ,  FA_OPEN_ALWAYS  |  FA_READ  |  FA_WRITE )  != FR_OK ) 
+    blocking_us_delay(20);
+    // _Error_Handler ( __FILE__ , __LINE__ ) ; 
+  
+  /* Check free space */ 
+  if ( f_getfree ( "" ,  & fre_clust ,  & pfs )  !=  FR_OK ) 
+    blocking_us_delay(20);
+    // _Error_Handler ( __FILE__ , __LINE__ ) ; 
+  
+  total =  ( uint32_t ) ( ( pfs -> n_fatent -  2 )  * pfs -> csize*  0.5 ) ; 
+  free_space =  ( uint32_t ) ( fre_clust * pfs -> csize *  0.5 ) ;    
+    
+  /* Free space is less than 1kb */ 
+  if ( free_space <  1 ) 
+    blocking_us_delay(20);
+    // _Error_Handler ( __FILE__ , __LINE__ ) ;   
+  
+  /* Write data to SD card */ 
+  f_puts ( "STM32 SD Card I/O Example via SPI\n" ,  & fil ) ;   
+  f_puts ( "Save the world!!!" ,  &fil ) ; 
+
+  /* Close file */ 
+  if ( f_close ( & fil )  !=  FR_OK ) 
+    blocking_us_delay(20);
+    // _Error_Handler ( __FILE__ , __LINE__ ) ; 
+
+ /**
+  * TODO ENG
+  * This is the ending block
+  * where we have tested writing to 
+  * the SD card
+  */
+
+
+
 
   /**
    * Draw Spalsh screen
@@ -188,6 +241,7 @@ int main(void)
 
     if(time.flag_500ms_tick) {
       time.flag_500ms_tick = false;
+      HAL_GPIO_TogglePin(HLTH_LED_GPIO_Port, HLTH_LED_Pin);
       // TODO remove following lines
       // print_string("X-Axis: ",0); print_16b_binary_rep(accel.accel_x_data,LF);
       // print_string("Y-Axis: ",0); print_16b_binary_rep(accel.accel_y_data,LF);
@@ -216,12 +270,12 @@ void SystemClock_Config(void)
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV2;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.Prediv1Source = RCC_PREDIV1_SOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
   RCC_OscInitStruct.PLL2.PLL2State = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -331,6 +385,82 @@ static void MX_I2C2_Init(void)
 }
 
 /**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
+
+  /* USER CODE BEGIN SPI1_Init 0 */
+
+  /* USER CODE END SPI1_Init 0 */
+
+  /* USER CODE BEGIN SPI1_Init 1 */
+
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
+
+  /* USER CODE END SPI1_Init 2 */
+
+}
+
+/**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
   * @brief TIM1 Initialization Function
   * @param None
   * @retval None
@@ -351,7 +481,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 1000;
+  htim1.Init.Prescaler = 1000-1;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 720;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -405,6 +535,64 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 71;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 65535;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_OC_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_OC_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -454,24 +642,36 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, EN_DUT_PWR_Pin|HLTH_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, EN_DUT_PWR_Pin|HLTH_LED_Pin|LED4_Pin|LED1_Pin
+                          |LED2_Pin|LED3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SWO_GPIO_Port, SWO_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, SWO_Pin|SD_SPI2_CSn_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : EN_DUT_PWR_Pin */
-  GPIO_InitStruct.Pin = EN_DUT_PWR_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : EN_DUT_PWR_Pin LED4_Pin LED1_Pin LED2_Pin
+                           LED3_Pin */
+  GPIO_InitStruct.Pin = EN_DUT_PWR_Pin|LED4_Pin|LED1_Pin|LED2_Pin
+                          |LED3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(EN_DUT_PWR_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : SWO_Pin */
-  GPIO_InitStruct.Pin = SWO_Pin;
+  /*Configure GPIO pins : SWO_Pin SD_SPI2_CSn_Pin */
+  GPIO_InitStruct.Pin = SWO_Pin|SD_SPI2_CSn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(SWO_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB1_n_Pin PB2_n_Pin PB3_n_Pin PB4_n_Pin */
+  GPIO_InitStruct.Pin = PB1_n_Pin|PB2_n_Pin|PB3_n_Pin|PB4_n_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : HLTH_LED_Pin */
   GPIO_InitStruct.Pin = HLTH_LED_Pin;
@@ -480,23 +680,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(HLTH_LED_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB1_ACTIVE_Pin */
-  GPIO_InitStruct.Pin = PB1_ACTIVE_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  /*Configure GPIO pin : ADC_SPI1_CSn_Pin */
+  GPIO_InitStruct.Pin = ADC_SPI1_CSn_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(PB1_ACTIVE_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : ADC_SPI1_CSn_Pin ADC_SPI1_CLK_Pin ADC_SPI1_MISO_Pin ADC_SPI1_MOSI_Pin */
-  GPIO_InitStruct.Pin = ADC_SPI1_CSn_Pin|ADC_SPI1_CLK_Pin|ADC_SPI1_MISO_Pin|ADC_SPI1_MOSI_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : SD_SPI2_MOSI_Pin SD_SPI2_MISO_Pin SD_SPI2_CLK_Pin SD_SPI2_CSn_Pin */
-  GPIO_InitStruct.Pin = SD_SPI2_MOSI_Pin|SD_SPI2_MISO_Pin|SD_SPI2_CLK_Pin|SD_SPI2_CSn_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(ADC_SPI1_CSn_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : REV_2_Pin REV_1_Pin REV_0_Pin */
   GPIO_InitStruct.Pin = REV_2_Pin|REV_1_Pin|REV_0_Pin;
@@ -513,6 +702,29 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void blocking_delay_10ms_ticks (uint16_t ticks) {
+  uint16_t i = 0;
+  uint16_t tick = 0; //Used to lock time value
+  for (i = ticks; i > 0; i--)
+  {
+      tick = time.ticks10ms;
+      while (tick == time.ticks10ms); 
+  }
+}
+
+void blocking_delay_500ms_ticks(uint16_t ticks)
+{
+    uint16_t i = 0;
+    uint16_t tick = 0; //Used to lock time value
+    for (i = ticks; i > 0; i--)
+    {
+      tick = time.ticks500ms;
+      while (tick == time.ticks500ms); 
+    }
+}
+
+//TODO need to insert the state machine here...
 
 /* USER CODE END 4 */
 
