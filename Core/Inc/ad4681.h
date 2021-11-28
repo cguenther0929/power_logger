@@ -14,6 +14,10 @@
 extern SPI_HandleTypeDef hspi1;
 
 typedef struct {
+    
+    bool    first_sample;           // False until first sample is recorded
+    bool    logging_status;         // Indicates if unit is 'running'
+    
     uint8_t ad4681_buffer[4];       // Each transation will require four bytes (32 bits)
     uint16_t voltage_sample;
     uint16_t current_sample;
@@ -23,6 +27,9 @@ typedef struct {
     float   power_f;
 
     float   cs_res_f;           // This value will need to be configured by the user
+
+    float   run_time_hr;
+    float   run_time_min;
 
 
 } ad4681Data;
@@ -34,9 +41,10 @@ typedef struct {
  * Note, data is returned in 
  * twos complement format.
  */
-#define AD4681_RESOLUTION               16          //TODO shall this line shall be removed
+#define AD4681_RESOLUTION               16          //TODO shall this line shall be removed?
 #define A2D_VOLTAGE_PER_BIT             (float)(0.0000763)
 #define VOLTAGE_MEAS_GAIN               (float)(12.0476)
+#define CS_PULSE_DELAY_uS               10          //TODO may need to increase the delay
 
 
 /**
@@ -181,12 +189,12 @@ typedef struct {
  * @return   Nothing 
  * 
 */
-void init_ad4681 (void);
+void init_ad4681 ( ad4681Data * a2d );
 
 /**
  * TODO need to comment 
  */
-void get_ad4681_samples( void );
+void get_ad4681_samples( ad4681Data * a2d );
 
 
 #endif /* INC_AD4681_H_ */

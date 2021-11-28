@@ -14,6 +14,9 @@
   * License. You may obtain a copy of the License at:
   *                        opensource.org/licenses/BSD-3-Clause
   *
+  * TODO Develop button input routines
+  * TODO How to store screen buffer?  Multiple buffers or update just one buffer?
+  * 
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -30,6 +33,10 @@
 /* USER CODE BEGIN PTD */
 struct timing       time;
 struct oled         oled;  
+struct buttonStruct btn;
+ad4681Data          a2d;
+ad4681Data        * a2d_p;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -114,7 +121,6 @@ static void MX_SPI2_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  ad4681Data * a2d;
 
   /* USER CODE END 1 */
 
@@ -126,17 +132,32 @@ int main(void)
   /* USER CODE BEGIN Init */
 
   setFont(&FreeSans9pt7b);
+  setTextSize(1,1);             // 21 characters per line
   display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
 
+  oled.current_screen = MAIN_SCREEN;
+
+  /* Configure time keeping flags */
   time.led_fast_blink = false;
   time.flag_10ms_tick = false;
   time.flag_100ms_tick = false;
   time.flag_500ms_tick = false;
+  
+  /* Configure button-related flags */
+  btn.up_btn_press_ctr = 0;   
+  btn.rt_btn_press_ctr = 0;   
+  btn.dn_btn_press_ctr = 0;   
+  btn.lt_btn_press_ctr = 0;   
+
+  btn.up_btn_pressed = false;
+  btn.rt_btn_pressed = false;
+  btn.dn_btn_pressed = false;
+  btn.lt_btn_pressed = false;
 
   HAL_TIM_Base_Start(&htim2);			// Start timer #2 for us delay timer
-  init_ad4681 ();                 // Initialize the A2D
+  init_ad4681 ( &a2d );                 // Initialize the A2D
 
-  a2d -> cs_res_f = 0.022;        // Set this to a default value
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -156,6 +177,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM2_Init();
   MX_SPI2_Init();
+ 
   /* USER CODE BEGIN 2 */
   print_string("Chip Reset.",LF);
 
@@ -222,7 +244,6 @@ int main(void)
     logo_bmp, LOGO_WIDTH, LOGO_HEIGHT, 1);
 
 
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -232,20 +253,29 @@ int main(void)
     
     if(time.flag_10ms_tick) {
       time.flag_10ms_tick = false;
-      // capture_accel_data();  // TODO remove this line?
+      
+      /* Grab Sensor Data */
+      get_ad4681_samples( &a2d );    
+      
+      /* Log Sensor Data */
+      log_samples();
+      
+      /* Evaluate Button Inputs */
+      evaluate_button_inputs();
+
+
     }
 
     if(time.flag_100ms_tick) {
       time.flag_100ms_tick = false;
+      
+      /* Update Display */
+      update_screen();
     }
 
     if(time.flag_500ms_tick) {
       time.flag_500ms_tick = false;
       HAL_GPIO_TogglePin(HLTH_LED_GPIO_Port, HLTH_LED_Pin);
-      // TODO remove following lines
-      // print_string("X-Axis: ",0); print_16b_binary_rep(accel.accel_x_data,LF);
-      // print_string("Y-Axis: ",0); print_16b_binary_rep(accel.accel_y_data,LF);
-      // print_string("Z-Axis: ",0); print_16b_binary_rep(accel.accel_z_data,LF);
     }
 
     /* USER CODE END WHILE */
@@ -723,6 +753,352 @@ void blocking_delay_500ms_ticks(uint16_t ticks)
       while (tick == time.ticks500ms); 
     }
 }
+
+  // TODO need to implement
+void update_screen( void ) {
+
+    char temp_string[32];        //Define the array that will hold the ASCII values
+    char temp_number[8];        //Define the array that will hold the ASCII values
+
+    /* USE SPRINT F TO BUILD THE ARRAY OF ASCII CHARACTERS */
+
+
+  switch (oled.current_screen) {
+    case MAIN_SCREEN:
+      /* Clear Display */
+      oled_clear();
+
+      /* Set Larger Text Size for title */
+      setTextSize(2,2);
+
+      /* Write Title Line and Underscore */
+      writeOledString("   MAIN  \n", SSD1306_WHITE);
+
+      /* Smaller text size for underline */
+      setTextSize(1,1);
+      writeOledString("--------------------\n", SSD1306_WHITE);
+
+      /* Print Current Voltage Value */
+      memset(temp_string, '\0', 32);                  // Destination, Source, Size
+      memset(temp_number, '\0', 8);                   
+      memset(temp_string, "Voltage: ", 9);              
+
+      sprintf((char *)temp_number, "%.4f", a2d_p -> voltage_f );   //f tells the function we want to print a float value
+
+      strcat(temp_string, temp_number);         
+      strcat(temp_string, '\n');         
+      writeOledString(temp_string, SSD1306_WHITE);
+
+       /* Print Current Current Value */
+      memset(temp_string, '\0', 32);                 
+      memset(temp_number, '\0', 8);                   
+      memset(temp_string, "Current: ", 9);              
+
+      sprintf((char *)temp_number, "%.4f", a2d_p -> current_f );   //f tells the function we want to print a float value
+
+      strcat(temp_string, temp_number);         
+      strcat(temp_string, '\n');         
+      writeOledString(temp_string, SSD1306_WHITE);
+
+      
+       /* Print Current Power Value */
+      memset(temp_string, '\0', 32);                  
+      memset(temp_number, '\0', 8);                   
+      memset(temp_string, "Power: ", 7);              
+
+      sprintf((char *)temp_number, "%.4f", a2d_p -> power_f );   //f tells the function we want to print a float value
+
+      strcat(temp_string, temp_number);         
+      strcat(temp_string, '\n');         
+      writeOledString(temp_string, SSD1306_WHITE);
+
+       /* Indicate run status */
+      memset(temp_string, '\0', 32);
+      if(a2d_p -> logging_status) {
+        writeOledString("Running: True\n", SSD1306_WHITE);
+      }
+      else {
+        writeOledString("Running: False\n", SSD1306_WHITE);
+      }
+
+      /**
+       * Call function that pushes
+       * local data buffer into RAM
+       * of display
+       */
+      updateDisplay();
+      
+    break;
+
+    case SET_RUN_TIME_HR:
+      /* Clear Display */
+      oled_clear();
+
+      /* Set Larger Text Size for title */
+      setTextSize(2,2);
+
+      /* Write Title Line and Underscore */
+      writeOledString("  HOURS  \n", SSD1306_WHITE);
+
+      /* Smaller text size for underline */
+      setTextSize(1,1);
+      writeOledString("--------------------\n", SSD1306_WHITE);
+
+      /* Indicate run-time in hours*/
+      memset(temp_string, '\0', 32);  
+      memset(temp_number, '\0', 8);                   
+      memset(temp_string, ">Run Time (hr): ", 16);
+
+      sprintf((char *)temp_number, "%.4f", a2d_p -> run_time_hr );   //f tells the function we want to print a float value
+
+      strcat(temp_string, temp_number);         
+      strcat(temp_string, '\n');         
+
+      writeOledString(temp_string, SSD1306_WHITE);
+      
+      /**
+       * Call function that pushes
+       * local data buffer into RAM
+       * of display
+       */
+      updateDisplay();
+      
+    break;
+
+    case SET_RUN_TIME_MIN:
+      /* Clear Display */
+      oled_clear();
+
+      /* Set Larger Text Size for title */
+      setTextSize(2,2);
+
+      /* Write Title Line and Underscore */
+      writeOledString("   MINS  \n", SSD1306_WHITE);
+
+      /* Smaller text size for underline */
+      setTextSize(1,1);
+      writeOledString("--------------------\n", SSD1306_WHITE);
+
+      /* Indicate run-time in hours*/
+      memset(temp_string, '\0', 32);  
+      memset(temp_number, '\0', 8);                   
+      memset(temp_string, ">Run Time (min): ", 17);
+
+      sprintf((char *)temp_number, "%.4f", a2d_p -> run_time_min );   //f tells the function we want to print a float value
+
+      strcat(temp_string, temp_number);         
+      strcat(temp_string, '\n');         
+
+      writeOledString(temp_string, SSD1306_WHITE);
+      
+      /**
+       * Call function that pushes
+       * local data buffer into RAM
+       * of display
+       */
+      updateDisplay();
+    break;
+
+    case SET_SENSE_RESISTOR:
+      /* Clear Display */
+      oled_clear();
+
+      /* Set Larger Text Size for title */
+      setTextSize(2,2);
+
+      /* Write Title Line and Underscore */
+      writeOledString(" RESISTOR\n", SSD1306_WHITE);
+
+      /* Smaller text size for underline */
+      setTextSize(1,1);
+      writeOledString("--------------------\n", SSD1306_WHITE);
+
+      /* Indicate run-time in hours*/
+      memset(temp_string, '\0', 32);  
+      memset(temp_number, '\0', 8);                   
+      memset(temp_string, ">Sense Res: ", 12);
+
+      sprintf((char *)temp_number, "%.4f", a2d_p -> cs_res_f );   //f tells the function we want to print a float value
+
+      strcat(temp_string, temp_number);         
+      strcat(temp_string, '\n');         
+
+      writeOledString(temp_string, SSD1306_WHITE);
+      
+      /**
+       * Call function that pushes
+       * local data buffer into RAM
+       * of display
+       */
+      updateDisplay();
+    break;
+
+    default:
+      /* Error, so print main screen */
+      /* Clear Display */
+      oled_clear();
+
+      /* Set Larger Text Size for title */
+      setTextSize(2,2);
+
+      /* Write Title Line and Underscore */
+      writeOledString("   MAIN  \n", SSD1306_WHITE);
+
+      /* Smaller text size for underline */
+      setTextSize(1,1);
+      writeOledString("--------------------\n", SSD1306_WHITE);
+
+      /* Print Current Voltage Value */
+      memset(temp_string, '\0', 32);                  // Destination, Source, Size
+      memset(temp_number, '\0', 8);                   
+      memset(temp_string, "Voltage: ", 9);              
+
+      sprintf((char *)temp_number, "%.4f", a2d_p -> voltage_f );   //f tells the function we want to print a float value
+
+      strcat(temp_string, temp_number);         
+      strcat(temp_string, '\n');         
+      writeOledString(temp_string, SSD1306_WHITE);
+
+        /* Print Current Current Value */
+      memset(temp_string, '\0', 32);                 
+      memset(temp_number, '\0', 8);                   
+      memset(temp_string, "Current: ", 9);              
+
+      sprintf((char *)temp_number, "%.4f", a2d_p -> current_f );   //f tells the function we want to print a float value
+
+      strcat(temp_string, temp_number);         
+      strcat(temp_string, '\n');         
+      writeOledString(temp_string, SSD1306_WHITE);
+
+      
+        /* Print Current Power Value */
+      memset(temp_string, '\0', 32);                  
+      memset(temp_number, '\0', 8);                   
+      memset(temp_string, "Power: ", 7);              
+
+      sprintf((char *)temp_number, "%.4f", a2d_p -> power_f );   //f tells the function we want to print a float value
+
+      strcat(temp_string, temp_number);         
+      strcat(temp_string, '\n');         
+      writeOledString(temp_string, SSD1306_WHITE);
+
+        /* Indicate run status */
+      memset(temp_string, '\0', 32);
+      if(a2d_p -> logging_status) {
+        writeOledString("Running: True\n", SSD1306_WHITE);
+      }
+      else {
+        writeOledString("Running: False\n", SSD1306_WHITE);
+      }
+
+      /**
+       * Call function that pushes
+       * local data buffer into RAM
+       * of display
+       */
+      updateDisplay();
+    
+  }
+
+}
+
+  // TODO need to implement 
+void log_samples( void ) {
+}
+  
+
+void evaluate_button_inputs ( void ) {
+  
+  /* Verify if up button has been pressed */
+  if(HAL_GPIO_ReadPin(GPIOE, UP_BUTTON) && !btn.up_btn_pressed) {
+      if(btn.up_btn_press_ctr < BTN_DEBOUNCE_THRESHOLD) {
+        btn.up_btn_press_ctr++;
+      }
+      if(btn.up_btn_press_ctr >= BTN_DEBOUNCE_THRESHOLD) {
+        btn.up_btn_pressed = true;
+      }
+
+  }
+  else {
+    if(btn.up_btn_press_ctr > 0){
+      if(btn.up_btn_press_ctr > 2){
+        btn.up_btn_press_ctr -= 2;
+      }
+      else {
+        btn.up_btn_press_ctr = 0;
+      }
+    }
+
+  }
+
+  /* Verify if rt button has been pressed */
+  if(HAL_GPIO_ReadPin(GPIOE, RT_BUTTON) && !btn.rt_btn_pressed) {
+      if(btn.rt_btn_press_ctr < BTN_DEBOUNCE_THRESHOLD) {
+        btn.rt_btn_press_ctr++;
+      }
+      if(btn.rt_btn_press_ctr >= BTN_DEBOUNCE_THRESHOLD) {
+        btn.rt_btn_pressed = true;
+      }
+
+  }
+  else {
+    if(btn.rt_btn_press_ctr > 0){
+      if(btn.rt_btn_press_ctr > 2){
+        btn.rt_btn_press_ctr -= 2;
+      }
+      else {
+        btn.rt_btn_press_ctr = 0;
+      }
+    }
+
+  }
+  
+  /* Verify if dn button has been pressed */
+  if(HAL_GPIO_ReadPin(GPIOE, DN_BUTTON) && !btn.dn_btn_pressed) {
+      if(btn.dn_btn_press_ctr < BTN_DEBOUNCE_THRESHOLD) {
+        btn.dn_btn_press_ctr++;
+      }
+      if(btn.dn_btn_press_ctr >= BTN_DEBOUNCE_THRESHOLD) {
+        btn.dn_btn_pressed = true;
+      }
+
+  }
+  else {
+    if(btn.dn_btn_press_ctr > 0){
+      if(btn.dn_btn_press_ctr > 2){
+        btn.dn_btn_press_ctr -= 2;
+      }
+      else {
+        btn.dn_btn_press_ctr = 0;
+      }
+    }
+
+  }
+  
+  /* Verify if lt button has been pressed */
+  if(HAL_GPIO_ReadPin(GPIOE, LT_BUTTON) && !btn.lt_btn_pressed) {
+      if(btn.lt_btn_press_ctr < BTN_DEBOUNCE_THRESHOLD) {
+        btn.lt_btn_press_ctr++;
+      }
+      if(btn.lt_btn_press_ctr >= BTN_DEBOUNCE_THRESHOLD) {
+        btn.lt_btn_pressed = true;
+      }
+
+  }
+  else {
+    if(btn.lt_btn_press_ctr > 0){
+      if(btn.lt_btn_press_ctr > 2){
+        btn.lt_btn_press_ctr -= 2;
+      }
+      else {
+        btn.lt_btn_press_ctr = 0;
+      }
+    }
+
+  }
+
+}
+
 
 //TODO need to insert the state machine here...
 

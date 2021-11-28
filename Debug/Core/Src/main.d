@@ -28,9 +28,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/timer.h ../Core/Inc/uart.h ../Core/Inc/oled_128b64.h \
- ../Core/Inc/font.h ../Core/Inc/config.h ../Core/Inc/ad4681.h \
- ../Core/Inc/main.h ../FATFS/App/fatfs.h \
+ ../Core/Inc/ad4681.h ../Core/Inc/main.h ../Core/Inc/timer.h \
+ ../Core/Inc/uart.h ../Core/Inc/oled_128b64.h ../Core/Inc/font.h \
+ ../Core/Inc/config.h ../Core/Inc/common.h ../FATFS/App/fatfs.h \
  ../Middlewares/Third_Party/FatFs/src/ff.h \
  ../Middlewares/Third_Party/FatFs/src/integer.h ../FATFS/Target/ffconf.h \
  ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h \
@@ -98,6 +98,10 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
 
+../Core/Inc/ad4681.h:
+
+../Core/Inc/main.h:
+
 ../Core/Inc/timer.h:
 
 ../Core/Inc/uart.h:
@@ -108,9 +112,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 
 ../Core/Inc/config.h:
 
-../Core/Inc/ad4681.h:
-
-../Core/Inc/main.h:
+../Core/Inc/common.h:
 
 ../FATFS/App/fatfs.h:
 

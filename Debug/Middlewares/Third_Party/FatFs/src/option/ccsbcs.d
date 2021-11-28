@@ -32,9 +32,9 @@ Middlewares/Third_Party/FatFs/src/option/ccsbcs.o: \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/timer.h ../Core/Inc/uart.h ../Core/Inc/oled_128b64.h \
- ../Core/Inc/font.h ../Core/Inc/config.h ../Core/Inc/ad4681.h \
- ../Core/Inc/main.h
+ ../Core/Inc/ad4681.h ../Core/Inc/main.h ../Core/Inc/timer.h \
+ ../Core/Inc/uart.h ../Core/Inc/oled_128b64.h ../Core/Inc/font.h \
+ ../Core/Inc/config.h ../Core/Inc/common.h
 
 ../Middlewares/Third_Party/FatFs/src/option/../ff.h:
 
@@ -102,6 +102,10 @@ Middlewares/Third_Party/FatFs/src/option/ccsbcs.o: \
 
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
 
+../Core/Inc/ad4681.h:
+
+../Core/Inc/main.h:
+
 ../Core/Inc/timer.h:
 
 ../Core/Inc/uart.h:
@@ -112,6 +116,4 @@ Middlewares/Third_Party/FatFs/src/option/ccsbcs.o: \
 
 ../Core/Inc/config.h:
 
-../Core/Inc/ad4681.h:
-
-../Core/Inc/main.h:
+../Core/Inc/common.h:

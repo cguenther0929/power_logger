@@ -33,13 +33,14 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
+#include "ad4681.h"
 #include "string.h"
 #include "timer.h"
 #include "uart.h"
 #include "oled_128b64.h"
 #include "font.h"
 #include "config.h"
-#include "ad4681.h"
+#include "common.h"
 
 /* USER CODE END Includes */
 
@@ -71,6 +72,35 @@ void blocking_delay_10ms_ticks (uint16_t ticks);
  * TODO need to comment the following
  */
 void blocking_delay_500ms_ticks(uint16_t ticks);
+
+/**
+ * @brief Function to update OLED screen 
+ * TODO need to comment
+ */
+void update_screen( void );
+
+/**
+ * @brief Evaluate button inputs
+ * TODO need to comment
+ */
+
+/**
+ * FUNCTION: void evaluate_button_inputs ( void );
+ * --------------------
+ * @brief Evaluate button inputs.  This function
+ *      also handles the proper debouncing of buttons
+ *      and setting flags when buttons are pressed.
+ * 
+ * @return   Nothing 
+ * 
+*/
+void evaluate_button_inputs ( void );
+
+/**
+ * @brief Log power statistics to SD card
+ * TODO need to comment 
+ */
+void log_samples( void ); 
 
 /* USER CODE END EFP */
 

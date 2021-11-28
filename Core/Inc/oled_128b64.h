@@ -10,13 +10,48 @@
 
 #include "stm32f1xx_hal.h"
 #include "font.h"
+#include "ad4681.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-// #include <math.h>
 #include <stdlib.h>
 
 extern I2C_HandleTypeDef hi2c2;
+
+typedef enum {
+    MAIN_SCREEN,
+    SET_RUN_TIME_HR,
+    SET_RUN_TIME_MIN,
+    SET_SENSE_RESISTOR
+
+} ScreenID;
+
+struct oled {
+    ScreenID    current_screen;
+
+    //TODO are these buffers even used?
+    char        main_screen_text[8][22];     // Title line + underline + text
+    char        set_run_time_hr[3][22];     // Title line + underline + text
+    char        set_run_time_min[3][22];
+    char        set_sense_res[3][22];
+    
+    uint8_t     screen_width;
+    uint8_t     screen_height;
+
+    uint8_t     textsize_x;
+    uint8_t     textsize_y;
+
+    bool        wrap_text;
+
+    uint8_t     cursor_y;           // Current position of the y-cursor
+    uint8_t     cursor_x;           // Current position of the x-cursor
+
+    uint8_t     * screen_buffer;
+
+    GFXfont     * oled_font;          // Pointer to font data
+
+
+};
 
 #define OLED_SCREEN_ADDRESS             0x3C 
 
@@ -52,24 +87,6 @@ extern I2C_HandleTypeDef hi2c2;
 #define SSD1306_WHITE                   1           // Draw 'on' pixels
 #define SSD1306_INVERSE                 2           // Invert pixels
 
-struct oled {
-    uint8_t screen_width;
-    uint8_t screen_height;
-
-    uint8_t textsize_x;
-    uint8_t textsize_y;
-
-    bool    wrap_text;
-
-    uint8_t cursor_y;           // Current position of the y-cursor
-    uint8_t cursor_x;           // Current position of the x-cursor
-
-    uint8_t * screen_buffer;
-
-    GFXfont * oled_font;          // Pointer to font data
-
-
-};
 
 
 
@@ -97,8 +114,24 @@ void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h );
    that much bigger.
     @param  s_x  Desired text width magnification level in X-axis. 1 is default
     @param  s_y  Desired text width magnification level in Y-axis. 1 is default
+
 */
 /**************************************************************************/
+/**
+ * FUNCTION: void setTextSize (uint8_t s_x, uint8_t s_y)
+ * --------------------
+ *  @brief Set text 'magnification' size. Each increase in s makes 1 pixel
+ *          that much bigger.
+ * 
+ *  @attention A scale of 1,1 allows for 21 characters per line
+ *          while a scale of 2,2 allows for only 10 characters per line
+ * 
+ *  @param  s_x  Desired text width magnification level in X-axis. 1 is default
+ *  @param  s_y  Desired text width magnification level in Y-axis. 1 is default
+ * 
+ * @return   Nothing 
+ * 
+*/
 void setTextSize (uint8_t s_x, uint8_t s_y);
 
 /**
@@ -238,8 +271,7 @@ void oled_clear(void);
 
 
 /**
- * FUNCTION: void fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
- *                        uint16_t color);
+ * FUNCTION: void updateDisplay(void)
  * --------------------
  * 
  * @brief  Push data currently in RAM to SSD1306 display.

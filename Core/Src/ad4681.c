@@ -10,9 +10,9 @@
 // struct accel_data accel;    //TODO may need to define this
 // struct ad4681Data a2d;
 
-ad4681Data * a2d;
+// ad4681Data * a2d;        //TODO should be able to delete this line
 
-void init_ad4681 (void) {
+void init_ad4681 (ad4681Data * a2d) {
     uint8_t * spi_data;
 
     /**
@@ -52,9 +52,22 @@ void init_ad4681 (void) {
                 (OUTPUT_ON_SDOA_ONLY << CONVERSION_MODE_BIT_OFFSET );
 
     HAL_SPI_Transmit(&hspi1, (uint8_t *)spi_data, (uint16_t) 2, (uint32_t) 10);     // Timeout in us
+
+
+    /**
+     * Initializations related to
+     * the A2D interface
+   */
+    a2d -> cs_res_f = 0.022f;        // Set this to a default value
+    a2d -> first_sample = false;
+    a2d -> logging_status = false;
+
+    a2d -> run_time_hr = 0.0f;
+    a2d -> run_time_min = 0.0f;
+
 }
 
-get_ad4681_samples( void ) {
+get_ad4681_samples( ad4681Data * a2d ) {
     
     /**
      *  Grab A and B samples.
@@ -63,8 +76,9 @@ get_ad4681_samples( void ) {
      * CS line low before taking the sample.
      */
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_RESET);
-    blocking_us_delay(10);
+    blocking_us_delay(CS_PULSE_DELAY_uS);      
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_SET);
+    blocking_us_delay(CS_PULSE_DELAY_uS);      
 
     /** 
      * Drop the CS line 
@@ -103,8 +117,6 @@ get_ad4681_samples( void ) {
      * Determine current 
      * draw value
      */
-    //TODO there need to be a means for defining cs_res_f
-    
     if((uint16_t)(a2d -> current_sample >> 15 & 0x01) == 1 ) {   
         a2d -> current_sample ^= 0xFFFF;      // Invert all bits
         a2d -> current_sample += 0x01;        // Add one
