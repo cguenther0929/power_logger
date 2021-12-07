@@ -11,6 +11,7 @@
 #include "stdbool.h"
 #include "stm32f1xx_hal.h"
 extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
 
 struct timing {
 	uint8_t		ticks10ms;
@@ -29,6 +30,24 @@ struct timing {
  * TODO NEED TO COMMENT 
  */
 void blocking_us_delay (uint16_t us);
+
+/**
+ * @brief 
+ * TODO need to comment
+ */
+void start_us_counter ( void );
+
+/**
+ * @brief 
+ * TODO need to comment
+ */
+void stop_us_counter ( void ); 
+
+/**
+ * @brief 
+ * TODO need to comment
+ */
+uint16_t get_us_counter ( void );
 
 
 #endif /* INC_TIMER_H_ */

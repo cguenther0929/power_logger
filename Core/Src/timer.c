@@ -12,3 +12,16 @@ void blocking_us_delay (uint16_t us) {
 }
 
 
+void start_us_counter ( void ) {
+	__HAL_TIM_SET_COUNTER(&htim3,0);    // set the counter value a 0
+	HAL_TIM_Base_Start(&htim3);
+}
+
+void stop_us_counter ( void ) {
+	HAL_TIM_Base_Stop(&htim3);
+}
+
+uint16_t get_us_counter ( void ) {
+    return (__HAL_TIM_GET_COUNTER(&htim3));
+}
+

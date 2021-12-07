@@ -18,23 +18,20 @@
 
 extern I2C_HandleTypeDef hi2c2;
 
+#define MAX_SCREEN_INDEX     4
+
 typedef enum {
-    MAIN_SCREEN,
-    SET_RUN_TIME_HR,
-    SET_RUN_TIME_MIN,
-    SET_SENSE_RESISTOR
+    SCREEN_MAIN,
+    SCREEN_RUN_TIME_HR,
+    SCREEN_RUN_TIME_MIN,
+    SCREEN_SENSE_RESISTOR,
+    SCREEN_LOGGING
 
 } ScreenID;
 
 struct oled {
     ScreenID    current_screen;
 
-    //TODO are these buffers even used?
-    char        main_screen_text[8][22];     // Title line + underline + text
-    char        set_run_time_hr[3][22];     // Title line + underline + text
-    char        set_run_time_min[3][22];
-    char        set_sense_res[3][22];
-    
     uint8_t     screen_width;
     uint8_t     screen_height;
 

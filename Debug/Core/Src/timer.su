@@ -1,1 +1,4 @@
 timer.c:9:6:blocking_us_delay	16	static
+timer.c:15:6:start_us_counter	8	static
+timer.c:20:6:stop_us_counter	8	static
+timer.c:24:10:get_us_counter	4	static

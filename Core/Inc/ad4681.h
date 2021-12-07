@@ -15,8 +15,11 @@ extern SPI_HandleTypeDef hspi1;
 
 typedef struct {
     
-    bool    first_sample;           // False until first sample is recorded
-    bool    logging_status;         // Indicates if unit is 'running'
+    bool        first_sample;                   // False until first sample is recorded
+    bool        logging_status;                 // Indicates if unit is 'running'
+    uint8_t     ticks_10ms_between_samples;     // How many multiples of 10ms has passes since last reading
+    uint16_t    time_us_elapsed;                // How many us elapsed since last reading
+    
     
     uint8_t ad4681_buffer[4];       // Each transation will require four bytes (32 bits)
     uint16_t voltage_sample;
@@ -26,13 +29,16 @@ typedef struct {
     float   current_f;
     float   power_f;
 
+    uint8_t cs_res_index;
     float   cs_res_f;           // This value will need to be configured by the user
+    float   sense_resistors[3];
 
     float   run_time_hr;
     float   run_time_min;
 
 
 } ad4681Data;
+
 
 /**
  * General AD4681 settings, 

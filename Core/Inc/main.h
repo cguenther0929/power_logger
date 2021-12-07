@@ -97,6 +97,20 @@ void update_screen( void );
 void evaluate_button_inputs ( void );
 
 /**
+ * FUNCTION: void evaluate_state();
+ * --------------------
+ * @brief Evaluate the current state, and whether or 
+ *      not the application should proceed to the next 
+ *      state.  
+ * 
+ * @return   Nothing 
+ * 
+*/
+void evaluate_state ( void );
+
+
+
+/**
  * @brief Log power statistics to SD card
  * TODO need to comment 
  */

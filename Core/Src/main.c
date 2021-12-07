@@ -14,8 +14,7 @@
   * License. You may obtain a copy of the License at:
   *                        opensource.org/licenses/BSD-3-Clause
   *
-  * TODO Develop button input routines
-  * TODO How to store screen buffer?  Multiple buffers or update just one buffer?
+  * TODO finish --> switch (btn.button_press_status
   * 
   ******************************************************************************
   */
@@ -36,6 +35,7 @@ struct oled         oled;
 struct buttonStruct btn;
 ad4681Data          a2d;
 ad4681Data        * a2d_p;
+AppState            current_state = STATE_IDLE;
 
 /* USER CODE END PTD */
 
@@ -81,6 +81,7 @@ SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart1;
 
@@ -105,6 +106,7 @@ static void MX_TIM1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_SPI2_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -135,7 +137,7 @@ int main(void)
   setTextSize(1,1);             // 21 characters per line
   display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-  oled.current_screen = MAIN_SCREEN;
+  oled.current_screen = SCREEN_MAIN;
 
   /* Configure time keeping flags */
   time.led_fast_blink = false;
@@ -147,12 +149,9 @@ int main(void)
   btn.up_btn_press_ctr = 0;   
   btn.rt_btn_press_ctr = 0;   
   btn.dn_btn_press_ctr = 0;   
-  btn.lt_btn_press_ctr = 0;   
+  btn.lt_btn_press_ctr = 0;
 
-  btn.up_btn_pressed = false;
-  btn.rt_btn_pressed = false;
-  btn.dn_btn_pressed = false;
-  btn.lt_btn_pressed = false;
+  btn.button_press_status = NO_BTN_PUSHED;   
 
   HAL_TIM_Base_Start(&htim2);			// Start timer #2 for us delay timer
   init_ad4681 ( &a2d );                 // Initialize the A2D
@@ -177,7 +176,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM2_Init();
   MX_SPI2_Init();
- 
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   print_string("Chip Reset.",LF);
 
@@ -221,7 +220,7 @@ int main(void)
     // _Error_Handler ( __FILE__ , __LINE__ ) ; 
 
  /**
-  * TODO ENG
+  * TODO END
   * This is the ending block
   * where we have tested writing to 
   * the SD card
@@ -231,7 +230,7 @@ int main(void)
 
 
   /**
-   * Draw Spalsh screen
+   * Draw Splash screen
    */
   // TODO need to define bitmap image, screen width, and splash screen dimensions
   // display_oled_drawBitmap((oled.screen_width - BITMAP_WIDTH) / 2, (oled.screen_height - BITMAP_HEIGHT) / 2,
@@ -623,6 +622,54 @@ static void MX_TIM2_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 71;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_OC_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_OC_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -764,7 +811,7 @@ void update_screen( void ) {
 
 
   switch (oled.current_screen) {
-    case MAIN_SCREEN:
+    case SCREEN_MAIN:
       /* Clear Display */
       oled_clear();
 
@@ -830,7 +877,7 @@ void update_screen( void ) {
       
     break;
 
-    case SET_RUN_TIME_HR:
+    case SCREEN_RUN_TIME_HR:
       /* Clear Display */
       oled_clear();
 
@@ -865,7 +912,7 @@ void update_screen( void ) {
       
     break;
 
-    case SET_RUN_TIME_MIN:
+    case SCREEN_RUN_TIME_MIN:
       /* Clear Display */
       oled_clear();
 
@@ -899,7 +946,7 @@ void update_screen( void ) {
       updateDisplay();
     break;
 
-    case SET_SENSE_RESISTOR:
+    case SCREEN_SENSE_RESISTOR:
       /* Clear Display */
       oled_clear();
 
@@ -931,6 +978,47 @@ void update_screen( void ) {
        * of display
        */
       updateDisplay();
+    break;
+
+    case SCREEN_LOGGING:
+     /* Clear Display */
+      oled_clear();
+
+      /* Set Larger Text Size for title */
+      setTextSize(2,2);
+
+      /* Write Title Line and Underscore */
+      writeOledString(" LOGGING\n", SSD1306_WHITE);
+
+      /* Smaller text size for underline */
+      setTextSize(1,1);
+      writeOledString("--------------------\n", SSD1306_WHITE);
+
+      
+      /* Indicate whether or not we are logging */
+      memset(temp_string, '\0', 32);  
+      memset(temp_string, ">Logging: ", 10);
+
+      if (a2d_p -> logging_status == true){
+        strcat(temp_string, " YES\n");         
+      }
+      
+      else {
+        strcat(temp_string, " NO\n");         
+      }
+
+      writeOledString(temp_string, SSD1306_WHITE);
+
+      /* Indicate user instruction */
+      writeOledString("Press right to enable...", SSD1306_WHITE);
+      
+      /**
+       * Call function that pushes
+       * local data buffer into RAM
+       * of display
+       */
+      updateDisplay();
+
     break;
 
     default:
@@ -1002,20 +1090,92 @@ void update_screen( void ) {
 
 }
 
+// TODO this may not be needed.  Delete?
+void evaluate_state ( void ) {
+  // switch (current_state) {
+  //   case (STATE_IDLE):
+  //   break;
+
+  //   case(STATE_GRAB_SENSOR_DATA):
+  //   break;
+
+  //   case(STATE_LOG_SAMPLES):
+  //   break;
+
+  //   case(STATE_UPDATE_DISPLAY):
+  //     update_screen();
+  //     current_state = STATE_IDLE;
+  //   break;
+  // }
+  
+  
+  
+  blocking_delay_10ms_ticks(1);
+}
+
+
   // TODO need to implement 
 void log_samples( void ) {
+  char temp_number[8];        //Define the array that will hold the ASCII values
+  char temp_string[32];        //Define the array that will hold the ASCII values
+  /**
+   * @note If the elapsed time 
+   * is zero, then the first 
+   * sample has just been 
+   * read
+   */
+
+  /**
+   * @brief Describes how 
+   * CSV header shall look
+   * VOLTAGE | CURRENT | POWER | uS BETWEEN SAMPLES
+   */
+
+  memset(temp_string, '\0', 32);                  // Destination, Source, Size
+  memset(temp_number, '\0', 8);                   
+
+  /* Add voltage to the string */
+  sprintf((char *)temp_number, "%.4f", a2d_p -> voltage_f);   //f tells the function we want to print a float value
+  strcat(temp_string, temp_number);   
+  strcat(temp_string, ',');
+
+  /* Add current to the string */
+  memset(temp_number, '\0', 8);                   
+  sprintf((char *)temp_number, "%.4f", a2d_p -> current_f);   //f tells the function we want to print a float value
+  strcat(temp_string, temp_number);   
+  strcat(temp_string, ',');
+
+  /* Add power to the string */
+  memset(temp_number, '\0', 8);                   
+  sprintf((char *)temp_number, "%.4f", a2d_p -> power_f);   //f tells the function we want to print a float value
+  strcat(temp_string, temp_number);   
+  strcat(temp_string, ',');
+
+  /* Add power to the string */
+  memset(temp_number, '\0', 8);                   
+  sprintf((char *)temp_number, "%u", a2d_p -> time_us_elapsed);   //f tells the function we want to print a float value
+  strcat(temp_string, temp_number);   
+  strcat(temp_string, '\n');
+
+  /**
+   * Now print this 
+   * information to the SD
+   * card
+   */
+
+
 }
   
 
 void evaluate_button_inputs ( void ) {
   
   /* Verify if up button has been pressed */
-  if(HAL_GPIO_ReadPin(GPIOE, UP_BUTTON) && !btn.up_btn_pressed) {
+  if(HAL_GPIO_ReadPin(GPIOE, UP_BUTTON) && btn.button_press_status == NO_BTN_PUSHED) {
       if(btn.up_btn_press_ctr < BTN_DEBOUNCE_THRESHOLD) {
         btn.up_btn_press_ctr++;
       }
       if(btn.up_btn_press_ctr >= BTN_DEBOUNCE_THRESHOLD) {
-        btn.up_btn_pressed = true;
+        btn.button_press_status = UP_BUTTON;
       }
 
   }
@@ -1032,12 +1192,12 @@ void evaluate_button_inputs ( void ) {
   }
 
   /* Verify if rt button has been pressed */
-  if(HAL_GPIO_ReadPin(GPIOE, RT_BUTTON) && !btn.rt_btn_pressed) {
+  if(HAL_GPIO_ReadPin(GPIOE, RT_BUTTON) && btn.button_press_status == NO_BTN_PUSHED) {
       if(btn.rt_btn_press_ctr < BTN_DEBOUNCE_THRESHOLD) {
         btn.rt_btn_press_ctr++;
       }
       if(btn.rt_btn_press_ctr >= BTN_DEBOUNCE_THRESHOLD) {
-        btn.rt_btn_pressed = true;
+        btn.button_press_status = RT_BTN_PUSHED;
       }
 
   }
@@ -1054,12 +1214,12 @@ void evaluate_button_inputs ( void ) {
   }
   
   /* Verify if dn button has been pressed */
-  if(HAL_GPIO_ReadPin(GPIOE, DN_BUTTON) && !btn.dn_btn_pressed) {
+  if(HAL_GPIO_ReadPin(GPIOE, DN_BUTTON) && btn.button_press_status == NO_BTN_PUSHED) {
       if(btn.dn_btn_press_ctr < BTN_DEBOUNCE_THRESHOLD) {
         btn.dn_btn_press_ctr++;
       }
       if(btn.dn_btn_press_ctr >= BTN_DEBOUNCE_THRESHOLD) {
-        btn.dn_btn_pressed = true;
+        btn.button_press_status = DN_BTN_PUSHED;
       }
 
   }
@@ -1076,12 +1236,12 @@ void evaluate_button_inputs ( void ) {
   }
   
   /* Verify if lt button has been pressed */
-  if(HAL_GPIO_ReadPin(GPIOE, LT_BUTTON) && !btn.lt_btn_pressed) {
+  if(HAL_GPIO_ReadPin(GPIOE, LT_BUTTON) && btn.button_press_status == NO_BTN_PUSHED) {
       if(btn.lt_btn_press_ctr < BTN_DEBOUNCE_THRESHOLD) {
         btn.lt_btn_press_ctr++;
       }
       if(btn.lt_btn_press_ctr >= BTN_DEBOUNCE_THRESHOLD) {
-        btn.lt_btn_pressed = true;
+        btn.button_press_status = LT_BTN_PUSHED;
       }
 
   }
@@ -1096,6 +1256,73 @@ void evaluate_button_inputs ( void ) {
     }
 
   }
+
+  /**
+   * Process what button
+   * was pressed 
+   */
+  // TODO need to finish defineing these!
+  switch (btn.button_press_status) {
+    case UP_BTN_PUSHED:
+      if(oled.current_screen == SCREEN_RUN_TIME_HR){
+        (a2d_p -> run_time_hr < 12) ? (a2d_p -> run_time_hr++) : (a2d_p -> run_time_hr = 0);
+      }
+      
+      else if(oled.current_screen == SCREEN_RUN_TIME_MIN){
+        (a2d_p -> run_time_min < 60) ? (a2d_p -> run_time_min++) : (a2d_p -> run_time_min = 0);
+
+      }
+
+      else if(oled.current_screen == SCREEN_SENSE_RESISTOR) {
+        (a2d_p -> cs_res_index < 2) ? (a2d_p -> cs_res_index++) : (a2d_p -> cs_res_index = 0);
+
+        a2d_p -> cs_res_f = a2d_p -> sense_resistors[a2d_p -> cs_res_index];
+      }
+
+      else if (oled.current_screen == SCREEN_LOGGING) {
+        (a2d_p -> logging_status == true) ? (a2d_p -> logging_status == false) : (a2d_p -> logging_status == true);
+      }
+
+    break;
+
+
+    case DN_BTN_PUSHED:
+      if(oled.current_screen == SCREEN_RUN_TIME_HR){
+        (a2d_p -> run_time_hr > 0) ? (a2d_p -> run_time_hr--) : (a2d_p -> run_time_hr = 12);
+      }
+      
+      else if(oled.current_screen == SCREEN_RUN_TIME_MIN){
+        (a2d_p -> run_time_min > 0 ) ? (a2d_p -> run_time_min--) : (a2d_p -> run_time_min = 60);
+
+      }
+
+      else if(oled.current_screen == SCREEN_SENSE_RESISTOR) {
+        (a2d_p -> cs_res_index > 0) ? (a2d_p -> cs_res_index--) : (a2d_p -> cs_res_index = 2);
+
+        a2d_p -> cs_res_f = a2d_p -> sense_resistors[a2d_p -> cs_res_index];
+      }
+      
+      else if (oled.current_screen == SCREEN_LOGGING) {
+        (a2d_p -> logging_status == true) ? (a2d_p -> logging_status == false) : (a2d_p -> logging_status == true);
+      }
+
+    break;
+    
+    case RT_BTN_PUSHED:
+      (oled.current_screen < MAX_SCREEN_INDEX) ? (oled.current_screen++) : (oled.current_screen = 0);
+    break;
+
+    case LT_BTN_PUSHED:
+      (oled.current_screen > 0) ? (oled.current_screen--) : (oled.current_screen =  MAX_SCREEN_INDEX);
+    break;
+
+    default:
+      oled.current_screen = SCREEN_MAIN;
+    break;
+  }
+
+  /* Button processing is complete, so reset button status*/
+  btn.button_press_status = NO_BTN_PUSHED;
 
 }
 
