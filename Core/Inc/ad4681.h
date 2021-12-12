@@ -47,7 +47,6 @@ typedef struct {
  * Note, data is returned in 
  * twos complement format.
  */
-#define AD4681_RESOLUTION               16          //TODO shall this line shall be removed?
 #define A2D_VOLTAGE_PER_BIT             (float)(0.0000763)
 #define VOLTAGE_MEAS_GAIN               (float)(12.0476)
 #define CS_PULSE_DELAY_uS               10          //TODO may need to increase the delay

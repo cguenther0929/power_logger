@@ -35,6 +35,7 @@ struct oled         oled;
 struct buttonStruct btn;
 ad4681Data          a2d;
 ad4681Data        * a2d_p;
+errorCode         * err_p;
 AppState            current_state = STATE_IDLE;
 
 /* USER CODE END PTD */
@@ -138,6 +139,7 @@ int main(void)
   display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
 
   oled.current_screen = SCREEN_MAIN;
+  err_p -> error_code = NO_ERROR;
 
   /* Configure time keeping flags */
   time.led_fast_blink = false;
@@ -188,36 +190,41 @@ int main(void)
   */
 
   /* Mount SD Card */ 
-  if ( f_mount ( & fs ,  "" ,  0 )  !=  FR_OK ) 
-    blocking_us_delay(20);
-    // _Error_Handler ( __FILE__ , __LINE__ ) ; 
+  if ( f_mount ( & fs ,  "" ,  0 )  !=  FR_OK ){
+    err_p -> error_code = SD_FAILED_MOUNT;
+    Error_Handler (); 
+  }
   
   /* Open file to write */ 
-  if ( f_open ( & fil ,  "first.txt" ,  FA_OPEN_ALWAYS  |  FA_READ  |  FA_WRITE )  != FR_OK ) 
-    blocking_us_delay(20);
-    // _Error_Handler ( __FILE__ , __LINE__ ) ; 
+  if ( f_open ( & fil ,  "first.txt" ,  FA_OPEN_ALWAYS  |  FA_READ  |  FA_WRITE )  != FR_OK ){
+    err_p -> error_code = SD_OPEN_FILE;
+    Error_Handler(); 
+  }
   
   /* Check free space */ 
-  if ( f_getfree ( "" ,  & fre_clust ,  & pfs )  !=  FR_OK ) 
-    blocking_us_delay(20);
-    // _Error_Handler ( __FILE__ , __LINE__ ) ; 
+  if ( f_getfree ( "" ,  & fre_clust ,  & pfs )  !=  FR_OK ){
+    err_p -> error_code = SD_CHECK_MEMORY;
+    Error_Handler(); 
+  }
   
   total =  ( uint32_t ) ( ( pfs -> n_fatent -  2 )  * pfs -> csize*  0.5 ) ; 
   free_space =  ( uint32_t ) ( fre_clust * pfs -> csize *  0.5 ) ;    
     
   /* Free space is less than 1kb */ 
-  if ( free_space <  1 ) 
-    blocking_us_delay(20);
-    // _Error_Handler ( __FILE__ , __LINE__ ) ;   
+  if ( free_space <  1 ){
+    err_p -> error_code = SD_LOW_ON_MEMORY;
+    Error_Handler(); 
+  }
   
   /* Write data to SD card */ 
   f_puts ( "STM32 SD Card I/O Example via SPI\n" ,  & fil ) ;   
   f_puts ( "Save the world!!!" ,  &fil ) ; 
 
   /* Close file */ 
-  if ( f_close ( & fil )  !=  FR_OK ) 
-    blocking_us_delay(20);
-    // _Error_Handler ( __FILE__ , __LINE__ ) ; 
+  if ( f_close ( & fil )  !=  FR_OK ){
+    err_p -> error_code = SD_CLOSING_FILE;
+    Error_Handler(); 
+  }
 
  /**
   * TODO END
@@ -801,7 +808,6 @@ void blocking_delay_500ms_ticks(uint16_t ticks)
     }
 }
 
-  // TODO need to implement
 void update_screen( void ) {
 
     char temp_string[32];        //Define the array that will hold the ASCII values
@@ -828,35 +834,35 @@ void update_screen( void ) {
       /* Print Current Voltage Value */
       memset(temp_string, '\0', 32);                  // Destination, Source, Size
       memset(temp_number, '\0', 8);                   
-      memset(temp_string, "Voltage: ", 9);              
+      strcat(temp_string,"Voltage: ");
 
       sprintf((char *)temp_number, "%.4f", a2d_p -> voltage_f );   //f tells the function we want to print a float value
 
       strcat(temp_string, temp_number);         
-      strcat(temp_string, '\n');         
+      strcat(temp_string, "\n");         
       writeOledString(temp_string, SSD1306_WHITE);
 
        /* Print Current Current Value */
       memset(temp_string, '\0', 32);                 
       memset(temp_number, '\0', 8);                   
-      memset(temp_string, "Current: ", 9);              
+      strcat(temp_string, "Current: ");              
 
       sprintf((char *)temp_number, "%.4f", a2d_p -> current_f );   //f tells the function we want to print a float value
 
       strcat(temp_string, temp_number);         
-      strcat(temp_string, '\n');         
+      strcat(temp_string, "\n");         
       writeOledString(temp_string, SSD1306_WHITE);
 
       
        /* Print Current Power Value */
       memset(temp_string, '\0', 32);                  
       memset(temp_number, '\0', 8);                   
-      memset(temp_string, "Power: ", 7);              
+      strcat(temp_string, "Power: ");              
 
       sprintf((char *)temp_number, "%.4f", a2d_p -> power_f );   //f tells the function we want to print a float value
 
       strcat(temp_string, temp_number);         
-      strcat(temp_string, '\n');         
+      strcat(temp_string, "\n");         
       writeOledString(temp_string, SSD1306_WHITE);
 
        /* Indicate run status */
@@ -894,12 +900,12 @@ void update_screen( void ) {
       /* Indicate run-time in hours*/
       memset(temp_string, '\0', 32);  
       memset(temp_number, '\0', 8);                   
-      memset(temp_string, ">Run Time (hr): ", 16);
+      strcat(temp_string, ">Run Time (hr): ");
 
       sprintf((char *)temp_number, "%.4f", a2d_p -> run_time_hr );   //f tells the function we want to print a float value
 
-      strcat(temp_string, temp_number);         
-      strcat(temp_string, '\n');         
+      strcat(temp_string, temp_number);
+      strcat(temp_string, "\n");
 
       writeOledString(temp_string, SSD1306_WHITE);
       
@@ -929,12 +935,12 @@ void update_screen( void ) {
       /* Indicate run-time in hours*/
       memset(temp_string, '\0', 32);  
       memset(temp_number, '\0', 8);                   
-      memset(temp_string, ">Run Time (min): ", 17);
+      strcat((char*)temp_string, ">Run Time (min): ");
 
       sprintf((char *)temp_number, "%.4f", a2d_p -> run_time_min );   //f tells the function we want to print a float value
 
       strcat(temp_string, temp_number);         
-      strcat(temp_string, '\n');         
+      strcat(temp_string, "\n");         
 
       writeOledString(temp_string, SSD1306_WHITE);
       
@@ -963,12 +969,12 @@ void update_screen( void ) {
       /* Indicate run-time in hours*/
       memset(temp_string, '\0', 32);  
       memset(temp_number, '\0', 8);                   
-      memset(temp_string, ">Sense Res: ", 12);
+      strcat(temp_string, ">Sense Res: ");
 
       sprintf((char *)temp_number, "%.4f", a2d_p -> cs_res_f );   //f tells the function we want to print a float value
 
       strcat(temp_string, temp_number);         
-      strcat(temp_string, '\n');         
+      strcat(temp_string, "\n");         
 
       writeOledString(temp_string, SSD1306_WHITE);
       
@@ -997,7 +1003,7 @@ void update_screen( void ) {
       
       /* Indicate whether or not we are logging */
       memset(temp_string, '\0', 32);  
-      memset(temp_string, ">Logging: ", 10);
+      strcat(temp_string, ">Logging: ");
 
       if (a2d_p -> logging_status == true){
         strcat(temp_string, " YES\n");         
@@ -1039,35 +1045,35 @@ void update_screen( void ) {
       /* Print Current Voltage Value */
       memset(temp_string, '\0', 32);                  // Destination, Source, Size
       memset(temp_number, '\0', 8);                   
-      memset(temp_string, "Voltage: ", 9);              
+      strcat(temp_string, "Voltage: ");              
 
       sprintf((char *)temp_number, "%.4f", a2d_p -> voltage_f );   //f tells the function we want to print a float value
 
       strcat(temp_string, temp_number);         
-      strcat(temp_string, '\n');         
+      strcat(temp_string, "\n");         
       writeOledString(temp_string, SSD1306_WHITE);
 
         /* Print Current Current Value */
       memset(temp_string, '\0', 32);                 
       memset(temp_number, '\0', 8);                   
-      memset(temp_string, "Current: ", 9);              
+      strcat(temp_string, "Current: ");              
 
       sprintf((char *)temp_number, "%.4f", a2d_p -> current_f );   //f tells the function we want to print a float value
 
       strcat(temp_string, temp_number);         
-      strcat(temp_string, '\n');         
+      strcat(temp_string, "\n");         
       writeOledString(temp_string, SSD1306_WHITE);
 
       
         /* Print Current Power Value */
       memset(temp_string, '\0', 32);                  
       memset(temp_number, '\0', 8);                   
-      memset(temp_string, "Power: ", 7);              
+      strcat(temp_string, "Power: ");              
 
       sprintf((char *)temp_number, "%.4f", a2d_p -> power_f );   //f tells the function we want to print a float value
 
       strcat(temp_string, temp_number);         
-      strcat(temp_string, '\n');         
+      strcat(temp_string, "\n");         
       writeOledString(temp_string, SSD1306_WHITE);
 
         /* Indicate run status */
@@ -1122,7 +1128,8 @@ void log_samples( void ) {
    * @note If the elapsed time 
    * is zero, then the first 
    * sample has just been 
-   * read
+   * read, and a new file 
+   * will need to be created
    */
 
   /**
@@ -1137,25 +1144,25 @@ void log_samples( void ) {
   /* Add voltage to the string */
   sprintf((char *)temp_number, "%.4f", a2d_p -> voltage_f);   //f tells the function we want to print a float value
   strcat(temp_string, temp_number);   
-  strcat(temp_string, ',');
+  strcat(temp_string, ",");
 
   /* Add current to the string */
   memset(temp_number, '\0', 8);                   
   sprintf((char *)temp_number, "%.4f", a2d_p -> current_f);   //f tells the function we want to print a float value
   strcat(temp_string, temp_number);   
-  strcat(temp_string, ',');
+  strcat(temp_string, ",");
 
   /* Add power to the string */
   memset(temp_number, '\0', 8);                   
   sprintf((char *)temp_number, "%.4f", a2d_p -> power_f);   //f tells the function we want to print a float value
   strcat(temp_string, temp_number);   
-  strcat(temp_string, ',');
+  strcat(temp_string, ",");
 
   /* Add power to the string */
   memset(temp_number, '\0', 8);                   
   sprintf((char *)temp_number, "%u", a2d_p -> time_us_elapsed);   //f tells the function we want to print a float value
   strcat(temp_string, temp_number);   
-  strcat(temp_string, '\n');
+  strcat(temp_string, "\n");
 
   /**
    * Now print this 
@@ -1261,7 +1268,7 @@ void evaluate_button_inputs ( void ) {
    * Process what button
    * was pressed 
    */
-  // TODO need to finish defineing these!
+  // TODO need to finish defining these!
   switch (btn.button_press_status) {
     case UP_BTN_PUSHED:
       if(oled.current_screen == SCREEN_RUN_TIME_HR){
@@ -1280,7 +1287,7 @@ void evaluate_button_inputs ( void ) {
       }
 
       else if (oled.current_screen == SCREEN_LOGGING) {
-        (a2d_p -> logging_status == true) ? (a2d_p -> logging_status == false) : (a2d_p -> logging_status == true);
+        (a2d_p -> logging_status == true) ? (a2d_p -> logging_status = false) : (a2d_p -> logging_status = true);
       }
 
     break;
@@ -1303,7 +1310,7 @@ void evaluate_button_inputs ( void ) {
       }
       
       else if (oled.current_screen == SCREEN_LOGGING) {
-        (a2d_p -> logging_status == true) ? (a2d_p -> logging_status == false) : (a2d_p -> logging_status == true);
+        (a2d_p -> logging_status == true) ? (a2d_p -> logging_status = false) : (a2d_p -> logging_status = true);
       }
 
     break;
@@ -1326,9 +1333,6 @@ void evaluate_button_inputs ( void ) {
 
 }
 
-
-//TODO need to insert the state machine here...
-
 /* USER CODE END 4 */
 
 /**
@@ -1340,6 +1344,43 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+
+  char temp_string[32];        //Define the array that will hold the ASCII values
+  char temp_number[8];        //Define the array that will hold the ASCII values
+
+  /* Clear memory arrays */
+  memset(temp_string, '\0', 32);                  // Destination, Source, Size
+  memset(temp_number, '\0', 8);                   
+  
+  /* Clear Display */
+  oled_clear();
+
+  /* Set Larger Text Size for title */
+  setTextSize(2,2);
+
+  /* Write Title Line and Underscore */
+  writeOledString("  ERROR \n", SSD1306_WHITE);
+
+  /* Smaller text size for underline */
+  setTextSize(1,1);
+  writeOledString("--------------------\n", SSD1306_WHITE);
+
+  /* Print the error code */
+  strcat(temp_string, "ERROR CODE: ");              
+
+  sprintf((char *)temp_number, "%u", err_p -> error_code);   // %u indicates unsigned decimal
+
+  strcat(temp_string, temp_number);
+  strcat(temp_string, "\n");
+  writeOledString(temp_string, SSD1306_WHITE);
+
+  /**
+   * Call function that pushes
+   * local data buffer into RAM
+   * of display
+   */
+  updateDisplay();
+
   while (1)
   {
   }

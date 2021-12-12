@@ -44,5 +44,20 @@ typedef enum
     STATE_UPDATE_DISPLAY
 } AppState;
 
+typedef enum
+{
+    NO_ERROR,
+    SD_FAILED_MOUNT,
+    SD_OPEN_FILE,
+    SD_CHECK_MEMORY,
+    SD_LOW_ON_MEMORY,
+    SD_CLOSING_FILE,
+    READING_A2D
+} ErrorCodes;
+
+typedef struct {
+    ErrorCodes error_code;
+} errorCode;
+
 
 #endif /* INC_COMMON_H_ */

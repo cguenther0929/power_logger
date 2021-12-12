@@ -10,7 +10,6 @@
 // struct accel_data accel;    //TODO may need to define this
 // struct ad4681Data a2d;
 
-// ad4681Data * a2d;        //TODO should be able to delete this line
 
 void init_ad4681 (ad4681Data * a2d) {
     uint8_t * spi_data;
