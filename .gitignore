@@ -11,3 +11,5 @@
 # Include makefiles
 !Makefile
 *~
+
+power_logger Debug.launch

@@ -68,7 +68,7 @@ void SDTimer_Handler( void ) {
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim6;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -220,44 +220,20 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles TIM1 capture compare interrupt.
+  * @brief This function handles TIM6 global interrupt.
   */
-void TIM1_CC_IRQHandler(void)
+void TIM6_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM1_CC_IRQn 0 */
-	time.flag_10ms_tick = true;
+  /* USER CODE BEGIN TIM6_IRQn 0 */
 
-		if(time.ticks10ms == 9) {
-		  time.ticks10ms = 0;
-		  time.flag_100ms_tick = true;
-			if(time.led_fast_blink)
-				HAL_GPIO_TogglePin(HLTH_LED_GPIO_Port, HLTH_LED_Pin);                     // Toggle the LED if not locked and fast blink is enabled
-			if(time.ticks100ms == 4) {
-				time.ticks100ms = 0;
-				time.flag_500ms_tick = true;
-				if(!time.led_fast_blink)
-					HAL_GPIO_TogglePin(HLTH_LED_GPIO_Port, HLTH_LED_Pin);
-				if(time.ticks500ms == 119)										// One minute worth of half seconds
-					time.ticks500ms = 0;
-				else
-					time.ticks500ms += 1;
-			}
-			else {
-				 time.ticks100ms += 1;
-			}
-		}
-		else {
-			time.ticks10ms += 1;
-		}
+  /* USER CODE END TIM6_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim6);
+  /* USER CODE BEGIN TIM6_IRQn 1 */
 
-  /* USER CODE END TIM1_CC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_CC_IRQn 1 */
-
-  /* USER CODE END TIM1_CC_IRQn 1 */
+  /* USER CODE END TIM6_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

@@ -31,48 +31,50 @@ void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
     /**
      * Call function to clear the display
      */
-    oled_clear();       
+    oled_clear();
 
 
     /**
      * Massive Initialization Sequence 
      */
     static const uint8_t init1[] = {SSD1306_DISPLAYOFF,         // 0xAE
-                                            SSD1306_SETDISPLAYCLOCKDIV, // 0xD5
-                                            0x80, // the suggested ratio 0x80
-                                            SSD1306_SETMULTIPLEX}; // 0xA8
-    ssd1306_commandList(init1, sizeof(init1));
-    ssd1306_command1(oled.screen_height - 1);
+                                              SSD1306_SETDISPLAYCLOCKDIV, // 0xD5
+                                              0x80, // the suggested ratio 0x80
+                                              SSD1306_SETMULTIPLEX}; // 0xA8
+	ssd1306_commandList(init1, sizeof(init1));	//TODO this is the line we want in
 
-    static const uint8_t init2[] = {SSD1306_SETDISPLAYOFFSET, // 0xD3
-                                            0x0,                      // no offset
-                                            SSD1306_SETSTARTLINE | 0x0, // line #0
-                                            SSD1306_CHARGEPUMP};        // 0x8D
-    ssd1306_commandList(init2, sizeof(init2));
 
-    ssd1306_command1((voltage_state == SSD1306_EXTERNALVCC) ? 0x10 : 0x14);
+	ssd1306_command1(oled.screen_height - 1);
 
-    static const uint8_t init3[] = {SSD1306_MEMORYMODE, // 0x20
-                                            0x00, // 0x0 act like ks0108
-                                            SSD1306_SEGREMAP | 0x1,
-                                            SSD1306_COMSCANDEC};
-    ssd1306_commandList(init3, sizeof(init3));
+	static const uint8_t init2[] = {SSD1306_SETDISPLAYOFFSET, // 0xD3
+                                              0x0,                      // no offset
+                                              SSD1306_SETSTARTLINE | 0x0, // line #0
+                                              SSD1306_CHARGEPUMP};        // 0x8D
+	ssd1306_commandList(init2, sizeof(init2));
 
-    uint8_t comPins = 0x02;
-    uint8_t contrast = 0x8F;
+	ssd1306_command1((voltage_state == SSD1306_EXTERNALVCC) ? 0x10 : 0x14);
 
-    if ((oled.screen_width == 128) && (oled.screen_height == 32)) {
-        comPins = 0x02;
-        contrast = 0x8F;
-    } else if ((oled.screen_width == 128) && (oled.screen_height == 64)) {
-        comPins = 0x12;
-        contrast = (voltage_state == SSD1306_EXTERNALVCC) ? 0x9F : 0xCF;
-    } else if ((oled.screen_width == 96) && (oled.screen_height == 16)) {
-        comPins = 0x2; // ada x12
-        contrast = (voltage_state == SSD1306_EXTERNALVCC) ? 0x10 : 0xAF;
-    } else {
-        // Other screen varieties -- TBD
-    }
+	static const uint8_t init3[] = {SSD1306_MEMORYMODE, // 0x20
+                                              0x00, // 0x0 act like ks0108
+                                              SSD1306_SEGREMAP | 0x1,
+                                              SSD1306_COMSCANDEC};
+	ssd1306_commandList(init3, sizeof(init3));
+
+	uint8_t comPins = 0x02;
+	uint8_t contrast = 0x8F;
+
+	if ((oled.screen_width == 128) && (oled.screen_height == 32)) {
+	  comPins = 0x02;
+	  contrast = 0x8F;
+	} else if ((oled.screen_width == 128) && (oled.screen_height == 64)) {
+	  comPins = 0x12;
+	  contrast = (voltage_state == SSD1306_EXTERNALVCC) ? 0x9F : 0xCF;
+	} else if ((oled.screen_width == 96) && (oled.screen_height == 16)) {
+	  comPins = 0x2; // ada x12
+	  contrast = (voltage_state == SSD1306_EXTERNALVCC) ? 0x10 : 0xAF;
+	} else {
+//         Other screen varieties -- TBD
+	}
 
     ssd1306_command1(SSD1306_SETCOMPINS);
     ssd1306_command1(comPins);
@@ -93,7 +95,7 @@ void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
     
 }
 
-//TODO::: The following line is for reference only
+//TODO::: The following comment is for reference only
 //TODO::: see Adafruit_GFX.cpp line 1305
 void setTextSize (uint8_t s_x, uint8_t s_y) {
     oled.textsize_x = (s_x > 0) ? s_x : 1;
@@ -167,20 +169,29 @@ void ssd1306_commandList(const uint8_t * command_pointer, uint8_t bytes_to_trans
     /**
      * Set Co and D/C bit to zero
      */
-    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *)0x00, 1, 10000) != HAL_OK){
-        asm("bkpt 255");
-    }
+//    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *)0x00, 1, 10000) != HAL_OK){
+//        Error_Handler();
+//    }
+	HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *)0x00, 1, 10000);
+
+
 
     /**
-     * Transmit the array of data
+     * @brief 
+     * 
      */
-    while(bytes_to_transmit--) {
-        if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command_pointer, 1, 10000) != HAL_OK){
-            asm("bkpt 255");
-        }
-        command_pointer++;
-    }
+//    while(bytes_to_transmit--) {
+//        if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command_pointer, 1, 10000) != HAL_OK){
+//            Error_Handler();
+//        }
+//        command_pointer++;
+//    }
+	while(bytes_to_transmit--) {
+		HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command_pointer, 1, 10000);
+		command_pointer++;
+	}
 }
+
 
 
 void ssd1306_command1(uint8_t command) {
@@ -188,16 +199,16 @@ void ssd1306_command1(uint8_t command) {
     /**
      * Set Co and D/C bit to zero
      */
-    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) 0x00, 1, 10000) != HAL_OK){
-        asm("bkpt 255");        //TODO need to figure out what this does
-    }
+//    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) 0x00, 1, 10000) != HAL_OK){
+//        asm("bkpt 255");        //TODO need to figure out what this does
+//    }
 
     /**
      * Transmit the array of data
      */
-    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command, 1, 10000) != HAL_OK){
-        asm("bkpt 255");        //TODO need to figure out what this does
-    }
+//    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command, 1, 10000) != HAL_OK){
+//        asm("bkpt 255");        //TODO need to figure out what this does
+//    }
 
 }
 

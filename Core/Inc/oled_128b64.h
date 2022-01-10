@@ -29,6 +29,8 @@ typedef enum {
 
 } ScreenID;
 
+#define MAX_SCREEN_BUFFER
+
 struct oled {
     ScreenID    current_screen;
 
@@ -43,10 +45,9 @@ struct oled {
     uint8_t     cursor_y;           // Current position of the y-cursor
     uint8_t     cursor_x;           // Current position of the x-cursor
 
-    uint8_t     * screen_buffer;
-
     GFXfont     * oled_font;          // Pointer to font data
 
+    uint8_t     screen_buffer[MAX_SCREEN_BUFFER];
 
 };
 

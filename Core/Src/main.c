@@ -80,9 +80,9 @@ I2C_HandleTypeDef hi2c2;
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
 
-TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart1;
 
@@ -103,11 +103,11 @@ static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_USART1_UART_Init(void);
-static void MX_TIM1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -134,12 +134,6 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
-  setFont(&FreeSans9pt7b);
-  setTextSize(1,1);             // 21 characters per line
-  display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-  oled.current_screen = SCREEN_MAIN;
-  err_p -> error_code = NO_ERROR;
 
   /* Configure time keeping flags */
   time.led_fast_blink = false;
@@ -154,10 +148,6 @@ int main(void)
   btn.lt_btn_press_ctr = 0;
 
   btn.button_press_status = NO_BTN_PUSHED;   
-
-  HAL_TIM_Base_Start(&htim2);			// Start timer #2 for us delay timer
-  init_ad4681 ( &a2d );                 // Initialize the A2D
-
 
   /* USER CODE END Init */
 
@@ -174,13 +164,29 @@ int main(void)
   MX_I2C2_Init();
   MX_FATFS_Init();
   MX_USART1_UART_Init();
-  MX_TIM1_Init();
   MX_SPI1_Init();
   MX_TIM2_Init();
   MX_SPI2_Init();
   MX_TIM3_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   print_string("Chip Reset.",LF);
+
+//  HAL_TIM_Base_Start(&htim2);			// Start timer #2 for us delay timer
+  HAL_TIM_Base_Start_IT(&htim6);
+//  init_ad4681 ( &a2d );                 // Initialize the A2D
+
+/**
+ * Initialize the OLED 
+ * Display 
+ * 
+ */
+  setFont(&FreeSans9pt7b);
+  setTextSize(1,1);             // 21 characters per line
+  display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+//  oled.current_screen = SCREEN_MAIN;
+//  err_p -> error_code = NO_ERROR;
 
   /**
    * TODO BEGIN
@@ -190,41 +196,41 @@ int main(void)
   */
 
   /* Mount SD Card */ 
-  if ( f_mount ( & fs ,  "" ,  0 )  !=  FR_OK ){
-    err_p -> error_code = SD_FAILED_MOUNT;
-    Error_Handler (); 
-  }
+  // if ( f_mount ( & fs ,  "" ,  0 )  !=  FR_OK ){
+  //   err_p -> error_code = SD_FAILED_MOUNT;
+  //   Error_Handler (); 
+  // }
   
   /* Open file to write */ 
-  if ( f_open ( & fil ,  "first.txt" ,  FA_OPEN_ALWAYS  |  FA_READ  |  FA_WRITE )  != FR_OK ){
-    err_p -> error_code = SD_OPEN_FILE;
-    Error_Handler(); 
-  }
+  // if ( f_open ( & fil ,  "first.txt" ,  FA_OPEN_ALWAYS  |  FA_READ  |  FA_WRITE )  != FR_OK ){
+  //   err_p -> error_code = SD_OPEN_FILE;
+  //   Error_Handler(); 
+  // }
   
   /* Check free space */ 
-  if ( f_getfree ( "" ,  & fre_clust ,  & pfs )  !=  FR_OK ){
-    err_p -> error_code = SD_CHECK_MEMORY;
-    Error_Handler(); 
-  }
+  // if ( f_getfree ( "" ,  & fre_clust ,  & pfs )  !=  FR_OK ){
+  //   err_p -> error_code = SD_CHECK_MEMORY;
+  //   Error_Handler(); 
+  // }
   
-  total =  ( uint32_t ) ( ( pfs -> n_fatent -  2 )  * pfs -> csize*  0.5 ) ; 
-  free_space =  ( uint32_t ) ( fre_clust * pfs -> csize *  0.5 ) ;    
+  // total =  ( uint32_t ) ( ( pfs -> n_fatent -  2 )  * pfs -> csize*  0.5 ) ; 
+  // free_space =  ( uint32_t ) ( fre_clust * pfs -> csize *  0.5 ) ;    
     
   /* Free space is less than 1kb */ 
-  if ( free_space <  1 ){
-    err_p -> error_code = SD_LOW_ON_MEMORY;
-    Error_Handler(); 
-  }
+  // if ( free_space <  1 ){
+  //   err_p -> error_code = SD_LOW_ON_MEMORY;
+  //   Error_Handler(); 
+  // }
   
   /* Write data to SD card */ 
-  f_puts ( "STM32 SD Card I/O Example via SPI\n" ,  & fil ) ;   
-  f_puts ( "Save the world!!!" ,  &fil ) ; 
+  // f_puts ( "STM32 SD Card I/O Example via SPI\n" ,  & fil ) ;   
+  // f_puts ( "Save the world!!!" ,  &fil ) ; 
 
   /* Close file */ 
-  if ( f_close ( & fil )  !=  FR_OK ){
-    err_p -> error_code = SD_CLOSING_FILE;
-    Error_Handler(); 
-  }
+  // if ( f_close ( & fil )  !=  FR_OK ){
+  //   err_p -> error_code = SD_CLOSING_FILE;
+  //   Error_Handler(); 
+  // }
 
  /**
   * TODO END
@@ -244,10 +250,10 @@ int main(void)
   //             oled.splash_screen_data, oled.splash_screen_width, oled.splash_screen_height, 1);
 
 
-  display_oled_drawBitmap(
-    (oled.screen_width  - LOGO_WIDTH ) / 2,
-    (oled.screen_height - LOGO_HEIGHT) / 2,
-    logo_bmp, LOGO_WIDTH, LOGO_HEIGHT, 1);
+  // display_oled_drawBitmap(
+  //   (oled.screen_width  - LOGO_WIDTH ) / 2,
+  //   (oled.screen_height - LOGO_HEIGHT) / 2,
+  //   logo_bmp, LOGO_WIDTH, LOGO_HEIGHT, 1);
 
 
   /* USER CODE END 2 */
@@ -260,14 +266,18 @@ int main(void)
     if(time.flag_10ms_tick) {
       time.flag_10ms_tick = false;
       
+      //TODO the following line is for testing only
+//      HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *)0x00, 1, 10000);
+
+
       /* Grab Sensor Data */
-      get_ad4681_samples( &a2d );    
+      // get_ad4681_samples( &a2d );    
       
       /* Log Sensor Data */
-      log_samples();
+      // log_samples();
       
       /* Evaluate Button Inputs */
-      evaluate_button_inputs();
+      // evaluate_button_inputs();
 
 
     }
@@ -276,13 +286,15 @@ int main(void)
       time.flag_100ms_tick = false;
       
       /* Update Display */
-      update_screen();
+      // update_screen();
     }
 
     if(time.flag_500ms_tick) {
       time.flag_500ms_tick = false;
       HAL_GPIO_TogglePin(HLTH_LED_GPIO_Port, HLTH_LED_Pin);
     }
+//    HAL_Delay(1000);
+//    HAL_GPIO_TogglePin(HLTH_LED_GPIO_Port, HLTH_LED_Pin);
 
     /* USER CODE END WHILE */
 
@@ -497,80 +509,6 @@ static void MX_SPI2_Init(void)
 }
 
 /**
-  * @brief TIM1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM1_Init(void)
-{
-
-  /* USER CODE BEGIN TIM1_Init 0 */
-
-  /* USER CODE END TIM1_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
-  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
-
-  /* USER CODE BEGIN TIM1_Init 1 */
-
-  /* USER CODE END TIM1_Init 1 */
-  htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 1000-1;
-  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 720;
-  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim1.Init.RepetitionCounter = 0;
-  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_OC_Init(&htim1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_TIMING;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-  if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
-  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
-  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-  sBreakDeadTimeConfig.DeadTime = 0;
-  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
-  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
-  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
-  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM1_Init 2 */
-
-  /* USER CODE END TIM1_Init 2 */
-
-}
-
-/**
   * @brief TIM2 Initialization Function
   * @param None
   * @retval None
@@ -673,6 +611,44 @@ static void MX_TIM3_Init(void)
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 1000-1;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 720-1;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
 
 }
 
@@ -1333,6 +1309,34 @@ void evaluate_button_inputs ( void ) {
 
 }
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if(htim == &htim6){
+	 	time.flag_10ms_tick = true;
+
+     if(time.ticks10ms == 9) {
+       time.ticks10ms = 0;
+       time.flag_100ms_tick = true;
+
+       if(time.ticks100ms == 4) {
+         time.ticks100ms = 0;
+         time.flag_500ms_tick = true;
+
+         if(time.ticks500ms == 119)										// One minute worth of half seconds
+           time.ticks500ms = 0;
+         else
+           time.ticks500ms += 1;
+       }
+       else {
+           time.ticks100ms += 1;
+       }
+     }
+     else {
+       time.ticks10ms += 1;
+     }
+
+	}
+}
+
 /* USER CODE END 4 */
 
 /**
@@ -1404,4 +1408,3 @@ void assert_failed(uint8_t *file, uint32_t line)
 }
 #endif /* USE_FULL_ASSERT */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
