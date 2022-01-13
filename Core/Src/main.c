@@ -171,6 +171,8 @@ int main(void)
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   print_string("Chip Reset.",LF);
+  print_16b_binary_rep(255,LF);
+  print_float(3.14159,LF);
 
 //  HAL_TIM_Base_Start(&htim2);			// Start timer #2 for us delay timer
   HAL_TIM_Base_Start_IT(&htim6);
@@ -181,9 +183,20 @@ int main(void)
  * Display 
  * 
  */
-  setFont(&FreeSans9pt7b);
-  setTextSize(1,1);             // 21 characters per line
-  display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
+  //TODO BELOW IS TEST CODE
+  static const uint8_t test_array[] = {0x55,0xAA}; // 0xA8
+	ssd1306_commandList(test_array, sizeof(test_array));	//TODO this is the line we want in
+
+
+	// ssd1306_command1(oled.screen_height - 1);
+
+  //TODO ABOVE IS TEST CODE
+  
+  
+  //TODO turn the following lines back on
+  // setFont(&FreeSans9pt7b);
+  // setTextSize(1,1);             // 21 characters per line
+  // display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 //  oled.current_screen = SCREEN_MAIN;
 //  err_p -> error_code = NO_ERROR;
@@ -414,7 +427,7 @@ static void MX_I2C2_Init(void)
 
   /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
-  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.ClockSpeed = 50000;
   hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c2.Init.OwnAddress1 = 0;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;

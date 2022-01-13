@@ -165,14 +165,19 @@ bool drawPixel(int16_t x, int16_t y, uint8_t color) {
 }
 
 void ssd1306_commandList(const uint8_t * command_pointer, uint8_t bytes_to_transmit) {
-
+    uint8_t data;
+    HAL_StatusTypeDef ret;
     /**
      * Set Co and D/C bit to zero
      */
 //    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *)0x00, 1, 10000) != HAL_OK){
 //        Error_Handler();
 //    }
-	HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *)0x00, 1, 10000);
+	data = 0x00;  ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 2, HAL_MAX_DELAY);
+
+    if(ret != HAL_OK){
+        print_string("I2C Transmit Error 1",LF);
+    }
 
 
 
@@ -186,8 +191,12 @@ void ssd1306_commandList(const uint8_t * command_pointer, uint8_t bytes_to_trans
 //        }
 //        command_pointer++;
 //    }
+
 	while(bytes_to_transmit--) {
-		HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command_pointer, 1, 10000);
+		ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command_pointer, 2, HAL_MAX_DELAY);
+        if(ret != HAL_OK){
+            print_string("I2C Transmit Error 2",LF);
+        }
 		command_pointer++;
 	}
 }
@@ -196,16 +205,20 @@ void ssd1306_commandList(const uint8_t * command_pointer, uint8_t bytes_to_trans
 
 void ssd1306_command1(uint8_t command) {
   
+    uint8_t data;
     /**
      * Set Co and D/C bit to zero
      */
+    data = 0x00;  HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 1, 10000);
+
 //    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) 0x00, 1, 10000) != HAL_OK){
 //        asm("bkpt 255");        //TODO need to figure out what this does
 //    }
 
     /**
-     * Transmit the array of data
+     * Transmit the command
      */
+    data = command;  HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 1, 10000);
 //    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command, 1, 10000) != HAL_OK){
 //        asm("bkpt 255");        //TODO need to figure out what this does
 //    }

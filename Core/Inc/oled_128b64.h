@@ -11,6 +11,7 @@
 #include "stm32f1xx_hal.h"
 #include "font.h"
 #include "ad4681.h"
+#include "uart.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
