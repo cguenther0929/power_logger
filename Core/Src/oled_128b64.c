@@ -29,7 +29,9 @@ void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
     oled.wrap_text = true;
 
     /**
-     * Call function to clear the display
+     * Call function to clear the local
+     * buffer that eventually gets written 
+     * to the display
      */
     oled_clear();
 
@@ -66,14 +68,17 @@ void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
 	if ((oled.screen_width == 128) && (oled.screen_height == 32)) {
 	  comPins = 0x02;
 	  contrast = 0x8F;
-	} else if ((oled.screen_width == 128) && (oled.screen_height == 64)) {
+	} 
+    else if ((oled.screen_width == 128) && (oled.screen_height == 64)) {
 	  comPins = 0x12;
 	  contrast = (voltage_state == SSD1306_EXTERNALVCC) ? 0x9F : 0xCF;
-	} else if ((oled.screen_width == 96) && (oled.screen_height == 16)) {
+	} 
+    else if ((oled.screen_width == 96) && (oled.screen_height == 16)) {
 	  comPins = 0x2; // ada x12
 	  contrast = (voltage_state == SSD1306_EXTERNALVCC) ? 0x10 : 0xAF;
-	} else {
-//         Other screen varieties -- TBD
+	} 
+    else {
+        // Other screen varieties -- TBD
 	}
 
     ssd1306_command1(SSD1306_SETCOMPINS);
@@ -92,7 +97,6 @@ void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
         SSD1306_DEACTIVATE_SCROLL,
         SSD1306_DISPLAYON}; // Main screen turn on
     ssd1306_commandList(init5, sizeof(init5));
-    
 }
 
 //TODO::: The following comment is for reference only
@@ -104,7 +108,7 @@ void setTextSize (uint8_t s_x, uint8_t s_y) {
 
 
 void oled_clear(void) {
-    memset(oled.screen_buffer, 0, oled.screen_width * ((oled.screen_height + 7) / 8));
+    memset(oled.screen_buffer, 0xFF, oled.screen_width * ((oled.screen_height + 7) / 8));
 }
 
 void display_oled_drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[],
@@ -170,30 +174,18 @@ void ssd1306_commandList(const uint8_t * command_pointer, uint8_t bytes_to_trans
     /**
      * Set Co and D/C bit to zero
      */
-//    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *)0x00, 1, 10000) != HAL_OK){
-//        Error_Handler();
-//    }
-	data = 0x00;  ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 2, HAL_MAX_DELAY);
+	data = 0x00;  
+    ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 1, HAL_MAX_DELAY);
 
     if(ret != HAL_OK){
         print_string("I2C Transmit Error 1",LF);
     }
 
-
-
     /**
-     * @brief 
-     * 
+     * Send the list of commands 
      */
-//    while(bytes_to_transmit--) {
-//        if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command_pointer, 1, 10000) != HAL_OK){
-//            Error_Handler();
-//        }
-//        command_pointer++;
-//    }
-
 	while(bytes_to_transmit--) {
-		ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command_pointer, 2, HAL_MAX_DELAY);
+		ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command_pointer, 1, HAL_MAX_DELAY);
         if(ret != HAL_OK){
             print_string("I2C Transmit Error 2",LF);
         }
@@ -201,27 +193,28 @@ void ssd1306_commandList(const uint8_t * command_pointer, uint8_t bytes_to_trans
 	}
 }
 
-
-
 void ssd1306_command1(uint8_t command) {
   
     uint8_t data;
+    HAL_StatusTypeDef ret;
+    
     /**
      * Set Co and D/C bit to zero
      */
-    data = 0x00;  HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 1, 10000);
-
-//    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) 0x00, 1, 10000) != HAL_OK){
-//        asm("bkpt 255");        //TODO need to figure out what this does
-//    }
+    data = 0x00;  
+    ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 1, 10000);
+    if(ret != HAL_OK){
+        print_string("I2C Transmit Error 210",LF);
+    }
 
     /**
-     * Transmit the command
+     * Send command
      */
-    data = command;  HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 1, 10000);
-//    if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command, 1, 10000) != HAL_OK){
-//        asm("bkpt 255");        //TODO need to figure out what this does
-//    }
+    data = command;  
+    ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 1, 10000);
+    if(ret != HAL_OK){
+        print_string("I2C Transmit Error 210",LF);
+    }
 
 }
 
@@ -482,8 +475,10 @@ void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 
 
 void updateDisplay(void) {
-//   TRANSACTION_START
-    
+    HAL_StatusTypeDef ret;
+    /**
+     * Set Co and D/C bit to zero
+     */
     static const uint8_t dlist1[] = {
         SSD1306_PAGEADDR,
         0,                      // Page start address
@@ -505,33 +500,12 @@ void updateDisplay(void) {
          * internal buffer to the screen's 
          * memory
          */
-        // while(bytes_to_transmit--) {
-        if (HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) data_pointer, 1, 10000) != HAL_OK){
-            asm("bkpt 255");
+        ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) data_pointer, 1, HAL_MAX_DELAY);
+        if(ret != HAL_OK){
+            print_string("I2C Transmit Error 2",LF);
         }
         data_pointer++;
-        // }
-        
-        
-        
-        // if (bytesOut >= WIRE_MAX) {
-        //     wire->endTransmission();
-        //     wire->beginTransmission(i2caddr);
-        //     WIRE_WRITE((uint8_t)0x40);
-        //     bytesOut = 1;
-        // }
-        
-        // WIRE_WRITE(*ptr++);
-        // bytesOut++;
     }
-    // wire->endTransmission();
-    // } 
-    // else { // SPI
-    //     SSD1306_MODE_DATA
-    //     while (count--)
-    //     SPIwrite(*ptr++);
-    // }
-    // TRANSACTION_END
 }
 
 

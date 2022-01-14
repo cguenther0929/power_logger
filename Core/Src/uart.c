@@ -15,7 +15,8 @@ void print_float (float number, uint8_t action) {
     sprintf((char *)temp_buffer, "%.4f", number);   //f tells the function we want to print a float value
 
     
-    HAL_UART_Transmit(&huart1, temp_buffer, sizeof(temp_buffer), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart1, (uint8_t *)&temp_buffer, sizeof(temp_buffer), HAL_MAX_DELAY);
+
     
     /* CHECK TO SEE IF THE USER WISHES TO CREATE A NEW LINE */
     if(action == LF) {

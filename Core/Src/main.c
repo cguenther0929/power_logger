@@ -184,8 +184,8 @@ int main(void)
  * 
  */
   //TODO BELOW IS TEST CODE
-  static const uint8_t test_array[] = {0x55,0xAA}; // 0xA8
-	ssd1306_commandList(test_array, sizeof(test_array));	//TODO this is the line we want in
+  // static const uint8_t test_array[] = {0x55,0xAA}; // 0xA8
+	// ssd1306_commandList(test_array, sizeof(test_array));	//TODO this is the line we want in
 
 
 	// ssd1306_command1(oled.screen_height - 1);
@@ -194,9 +194,10 @@ int main(void)
   
   
   //TODO turn the following lines back on
-  // setFont(&FreeSans9pt7b);
-  // setTextSize(1,1);             // 21 characters per line
-  // display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
+  setFont(&FreeSans9pt7b);
+  setTextSize(1,1);             // 21 characters per line
+  display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
+  updateDisplay();
 
 //  oled.current_screen = SCREEN_MAIN;
 //  err_p -> error_code = NO_ERROR;

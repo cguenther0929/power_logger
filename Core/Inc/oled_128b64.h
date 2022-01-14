@@ -52,7 +52,7 @@ struct oled {
 
 };
 
-#define OLED_SCREEN_ADDRESS             0x3C 
+#define OLED_SCREEN_ADDRESS             (0x3C << 1)
 
 #define SSD1306_EXTERNALVCC             0x01    // External display voltage source
 #define SSD1306_SWITCHCAPVCC            0x02    // Gen. display voltage from 3.3V
