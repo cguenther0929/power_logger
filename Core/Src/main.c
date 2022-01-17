@@ -115,6 +115,30 @@ static void MX_TIM6_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+/**
+ * @brief This function overwrites the 
+ * lower-level function that printf()
+ * leverages for the purpose of 
+ * redirecting printf() output
+ * to the SWV Data console. This allows
+ * printf() data to be printed to the SWV 
+ * console during debugging 
+ * 
+ * @param ptr -- Point to data that is
+ *              to be printed 
+ *              to the screen 
+ * @param len -- character passed in 
+ */
+int _write(int file, char *ptr, int len)
+ {
+	 int DataIdx;
+	 for (DataIdx = 0; DataIdx < len; DataIdx++)
+	 {
+		 ITM_SendChar(*ptr++);
+	 }
+	 return len;
+ }
+
 /* USER CODE END 0 */
 
 /**
@@ -193,10 +217,12 @@ int main(void)
   //TODO ABOVE IS TEST CODE
   
   
-  //TODO turn the following lines back on
+  //TODO Display test code 
   setFont(&FreeSans9pt7b);
   setTextSize(1,1);             // 21 characters per line
   display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
+  updateDisplay();
+  writeOledString("Hello!", SSD1306_WHITE);
   updateDisplay();
 
 //  oled.current_screen = SCREEN_MAIN;
@@ -306,9 +332,21 @@ int main(void)
     if(time.flag_500ms_tick) {
       time.flag_500ms_tick = false;
       HAL_GPIO_TogglePin(HLTH_LED_GPIO_Port, HLTH_LED_Pin);
+      printf("Hello World!");
+
+      //TODO when it comes time to toggle the relay, the following works!
+      // if(HAL_GPIO_ReadPin(EN_DUT_PWR_GPIO_Port, EN_DUT_PWR_Pin)){
+      //   HAL_GPIO_WritePin(EN_DUT_PWR_GPIO_Port, EN_DUT_PWR_Pin, GPIO_PIN_RESET);  //TODO this will deenergize the relying
+      // }
+
+      // else if(!HAL_GPIO_ReadPin(EN_DUT_PWR_GPIO_Port, EN_DUT_PWR_Pin)) {
+      //   HAL_GPIO_WritePin(EN_DUT_PWR_GPIO_Port, EN_DUT_PWR_Pin, GPIO_PIN_SET);  //TODO this will throw the relay
+      // }
+
     }
-//    HAL_Delay(1000);
-//    HAL_GPIO_TogglePin(HLTH_LED_GPIO_Port, HLTH_LED_Pin);
+    // HAL_Delay(1000);
+    // HAL_GPIO_TogglePin(EN_DUT_PWR_GPIO_Port, EN_DUT_PWR_Pin);  //TODO this works for toggling the relay!!
+
 
     /* USER CODE END WHILE */
 
@@ -428,7 +466,7 @@ static void MX_I2C2_Init(void)
 
   /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
-  hi2c2.Init.ClockSpeed = 50000;
+  hi2c2.Init.ClockSpeed = 10000;
   hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c2.Init.OwnAddress1 = 0;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -777,6 +815,12 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/**
+ * @brief Blocking delay,
+ * blocks of 10ms
+ * 
+ * @param ticks -- multiples of 10ms
+ */
 void blocking_delay_10ms_ticks (uint16_t ticks) {
   uint16_t i = 0;
   uint16_t tick = 0; //Used to lock time value
@@ -787,6 +831,12 @@ void blocking_delay_10ms_ticks (uint16_t ticks) {
   }
 }
 
+/**
+ * @brief Blocking delay
+ * blocks of 500ms
+ * 
+ * @param ticks -- multiples of 500ns
+ */
 void blocking_delay_500ms_ticks(uint16_t ticks)
 {
     uint16_t i = 0;
@@ -798,6 +848,10 @@ void blocking_delay_500ms_ticks(uint16_t ticks)
     }
 }
 
+/**
+ * @brief Update screen implementation
+ * 
+ */
 void update_screen( void ) {
 
     char temp_string[32];        //Define the array that will hold the ASCII values
@@ -809,7 +863,7 @@ void update_screen( void ) {
   switch (oled.current_screen) {
     case SCREEN_MAIN:
       /* Clear Display */
-      oled_clear();
+      oled_clear_buffer();
 
       /* Set Larger Text Size for title */
       setTextSize(2,2);
@@ -875,7 +929,7 @@ void update_screen( void ) {
 
     case SCREEN_RUN_TIME_HR:
       /* Clear Display */
-      oled_clear();
+      oled_clear_buffer();
 
       /* Set Larger Text Size for title */
       setTextSize(2,2);
@@ -910,7 +964,7 @@ void update_screen( void ) {
 
     case SCREEN_RUN_TIME_MIN:
       /* Clear Display */
-      oled_clear();
+      oled_clear_buffer();
 
       /* Set Larger Text Size for title */
       setTextSize(2,2);
@@ -944,7 +998,7 @@ void update_screen( void ) {
 
     case SCREEN_SENSE_RESISTOR:
       /* Clear Display */
-      oled_clear();
+      oled_clear_buffer();
 
       /* Set Larger Text Size for title */
       setTextSize(2,2);
@@ -978,7 +1032,7 @@ void update_screen( void ) {
 
     case SCREEN_LOGGING:
      /* Clear Display */
-      oled_clear();
+      oled_clear_buffer();
 
       /* Set Larger Text Size for title */
       setTextSize(2,2);
@@ -1020,7 +1074,7 @@ void update_screen( void ) {
     default:
       /* Error, so print main screen */
       /* Clear Display */
-      oled_clear();
+      oled_clear_buffer();
 
       /* Set Larger Text Size for title */
       setTextSize(2,2);
@@ -1371,7 +1425,7 @@ void Error_Handler(void)
   memset(temp_number, '\0', 8);                   
   
   /* Clear Display */
-  oled_clear();
+  oled_clear_buffer();
 
   /* Set Larger Text Size for title */
   setTextSize(2,2);

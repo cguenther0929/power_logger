@@ -30,7 +30,7 @@ typedef enum {
 
 } ScreenID;
 
-#define MAX_SCREEN_BUFFER
+// #define MAX_SCREEN_BUFFER 2048
 
 struct oled {
     ScreenID    current_screen;
@@ -48,7 +48,7 @@ struct oled {
 
     GFXfont     * oled_font;          // Pointer to font data
 
-    uint8_t     screen_buffer[MAX_SCREEN_BUFFER];
+    uint8_t     * screen_buffer;
 
 };
 
@@ -102,7 +102,7 @@ struct oled {
  * @return   Nothing 
  * 
 */
-void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h );
+bool display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h );
 
 
 
@@ -266,7 +266,7 @@ void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
                              uint16_t color);
 
 //TODO need to comment
-void oled_clear(void);
+void oled_clear_buffer(void);
 
 
 /**

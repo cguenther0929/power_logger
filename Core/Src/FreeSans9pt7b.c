@@ -206,7 +206,9 @@ const GFXglyph FreeSans9pt7bGlyphs[] = {
 };   // 0x7E '~'
 
 GFXfont FreeSans9pt7b = {
-  (uint8_t *)FreeSans9pt7bBitmaps,
-  (GFXglyph *)FreeSans9pt7bGlyphs, 0x20,
-  0x7E, 22
+  (uint8_t *)FreeSans9pt7bBitmaps,      // Bitmap for this font
+  (GFXglyph *)FreeSans9pt7bGlyphs,      // Glyph structure for this font
+  0x20,                                 // First
+  0x7E,                                 // Last
+  22                                    // yAdvance
 };

@@ -2176,7 +2176,7 @@ Disassembly of section .text:
  80018de:	0005      	.short	0x0005
  80018e0:	00c0008d 	.word	0x00c0008d
  80018e4:	010200e1 	.word	0x010200e1
- 80018e8:	f000 fe46 	bl	8002578 <oled_clear>
+ 80018e8:	f000 fe46 	bl	8002578 <oled_clear_buffer>
  80018ec:	2102      	movs	r1, #2
  80018ee:	4608      	mov	r0, r1
  80018f0:	f000 fe36 	bl	8002560 <setTextSize>
@@ -2280,7 +2280,7 @@ Disassembly of section .text:
  80019f2:	bd30      	pop	{r4, r5, pc}
  80019f4:	485a      	ldr	r0, [pc, #360]	; (8001b60 <update_screen+0x294>)
  80019f6:	e7f7      	b.n	80019e8 <update_screen+0x11c>
- 80019f8:	f000 fdbe 	bl	8002578 <oled_clear>
+ 80019f8:	f000 fdbe 	bl	8002578 <oled_clear_buffer>
  80019fc:	2102      	movs	r1, #2
  80019fe:	4608      	mov	r0, r1
  8001a00:	f000 fdae 	bl	8002560 <setTextSize>
@@ -2319,7 +2319,7 @@ Disassembly of section .text:
  8001a58:	2101      	movs	r1, #1
  8001a5a:	a802      	add	r0, sp, #8
  8001a5c:	e7c4      	b.n	80019e8 <update_screen+0x11c>
- 8001a5e:	f000 fd8b 	bl	8002578 <oled_clear>
+ 8001a5e:	f000 fd8b 	bl	8002578 <oled_clear_buffer>
  8001a62:	2102      	movs	r1, #2
  8001a64:	4608      	mov	r0, r1
  8001a66:	f000 fd7b 	bl	8002560 <setTextSize>
@@ -2344,7 +2344,7 @@ Disassembly of section .text:
  8001a9a:	6823      	ldr	r3, [r4, #0]
  8001a9c:	6b58      	ldr	r0, [r3, #52]	; 0x34
  8001a9e:	e7cb      	b.n	8001a38 <update_screen+0x16c>
- 8001aa0:	f000 fd6a 	bl	8002578 <oled_clear>
+ 8001aa0:	f000 fd6a 	bl	8002578 <oled_clear_buffer>
  8001aa4:	2102      	movs	r1, #2
  8001aa6:	4608      	mov	r0, r1
  8001aa8:	f000 fd5a 	bl	8002560 <setTextSize>
@@ -2369,7 +2369,7 @@ Disassembly of section .text:
  8001adc:	6823      	ldr	r3, [r4, #0]
  8001ade:	6a18      	ldr	r0, [r3, #32]
  8001ae0:	e7aa      	b.n	8001a38 <update_screen+0x16c>
- 8001ae2:	f000 fd49 	bl	8002578 <oled_clear>
+ 8001ae2:	f000 fd49 	bl	8002578 <oled_clear_buffer>
  8001ae6:	2102      	movs	r1, #2
  8001ae8:	4608      	mov	r0, r1
  8001aea:	f000 fd39 	bl	8002560 <setTextSize>
@@ -2758,7 +2758,7 @@ Disassembly of section .text:
  8001e88:	f004 ff1a 	bl	8006cc0 <memset>
  8001e8c:	2300      	movs	r3, #0
  8001e8e:	e9cd 3300 	strd	r3, r3, [sp]
- 8001e92:	f000 fb71 	bl	8002578 <oled_clear>
+ 8001e92:	f000 fb71 	bl	8002578 <oled_clear_buffer>
  8001e96:	2102      	movs	r1, #2
  8001e98:	4608      	mov	r0, r1
  8001e9a:	f000 fb61 	bl	8002560 <setTextSize>
@@ -3381,8 +3381,8 @@ Disassembly of section .text:
  8002572:	4770      	bx	lr
  8002574:	200002f4 	.word	0x200002f4
 
-08002578 <oled_clear>:
- 8002578:	4804      	ldr	r0, [pc, #16]	; (800258c <oled_clear+0x14>)
+08002578 <oled_clear_buffer>:
+ 8002578:	4804      	ldr	r0, [pc, #16]	; (800258c <oled_clear_buffer+0x14>)
  800257a:	2100      	movs	r1, #0
  800257c:	7883      	ldrb	r3, [r0, #2]
  800257e:	7842      	ldrb	r2, [r0, #1]
@@ -3585,7 +3585,7 @@ Disassembly of section .text:
  8002738:	716b      	strb	r3, [r5, #5]
  800273a:	70aa      	strb	r2, [r5, #2]
  800273c:	7069      	strb	r1, [r5, #1]
- 800273e:	f7ff ff1b 	bl	8002578 <oled_clear>
+ 800273e:	f7ff ff1b 	bl	8002578 <oled_clear_buffer>
  8002742:	2104      	movs	r1, #4
  8002744:	4826      	ldr	r0, [pc, #152]	; (80027e0 <display_oled_init+0xb0>)
  8002746:	f7ff ffb5 	bl	80026b4 <ssd1306_commandList>

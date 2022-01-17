@@ -1603,9 +1603,9 @@ LOAD c:/st/stm32cubeide_1.6.1/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  .text.setTextSize
                 0x0000000008002560       0x18 ./Core/Src/oled_128b64.o
                 0x0000000008002560                setTextSize
- .text.oled_clear
+ .text.oled_clear_buffer
                 0x0000000008002578       0x18 ./Core/Src/oled_128b64.o
-                0x0000000008002578                oled_clear
+                0x0000000008002578                oled_clear_buffer
  .text.drawPixel
                 0x0000000008002590       0xa0 ./Core/Src/oled_128b64.o
                 0x0000000008002590                drawPixel

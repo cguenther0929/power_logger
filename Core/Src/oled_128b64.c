@@ -21,7 +21,19 @@ struct oled     oled;
     }
 #endif
 
-void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
+/**
+ * @brief Initialization function for 
+ * OLED screen 
+ * 
+ * @param voltage_state 
+ * @param w 
+ * @param h 
+ * @note This code was borrowed from
+ * Adafruit_SSD1306::begin, which can 
+ * be found on line463 of Adafruit_SSD1306.cpp
+ *      
+ */
+bool display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
 
     oled.screen_width = w;
     oled.screen_height = h;
@@ -29,37 +41,52 @@ void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
     oled.wrap_text = true;
 
     /**
+     * Allocate memory for the buffer
+     * 
+     */
+    oled.screen_buffer = (uint8_t *)malloc(oled.screen_width * ((oled.screen_height + 7) / 8));
+
+    /**
      * Call function to clear the local
      * buffer that eventually gets written 
      * to the display
      */
-    oled_clear();
-
+    oled_clear_buffer();
 
     /**
      * Massive Initialization Sequence 
+     * 
+     * Set Co and D/C bit to zero by 
+     * first sending 0x00;  
      */
-    static const uint8_t init1[] = {SSD1306_DISPLAYOFF,         // 0xAE
-                                              SSD1306_SETDISPLAYCLOCKDIV, // 0xD5
-                                              0x80, // the suggested ratio 0x80
-                                              SSD1306_SETMULTIPLEX}; // 0xA8
-	ssd1306_commandList(init1, sizeof(init1));	//TODO this is the line we want in
+    static const uint8_t init1[] = {
+                                        0x00,                           //Set CO and D/C bits to zero
+                                        SSD1306_DISPLAYOFF,             // 0xAE
+                                        SSD1306_SETDISPLAYCLOCKDIV,     // 0xD5
+                                        0x80,                           // The suggest ratio is 0x80
+                                        SSD1306_SETMULTIPLEX};          // 0xA8
 
+    ssd1306_commandList(init1, sizeof(init1));	
+    
+	ssd1306_command1((uint8_t)(oled.screen_height - 1));
+    
+	static const uint8_t init2[] = {
+                                        0x00,                           //Set Co and D/C to zero
+                                        SSD1306_SETDISPLAYOFFSET,       //0xD3
+                                        0x00,                           //no offset
+                                        SSD1306_SETSTARTLINE | 0x00,    //line #0
+                                        SSD1306_CHARGEPUMP};            //0x8D
+	
+    ssd1306_commandList(init2, sizeof(init2));
+	
+    ssd1306_command1((uint8_t)(voltage_state == SSD1306_EXTERNALVCC) ? 0x10 : 0x14);
 
-	ssd1306_command1(oled.screen_height - 1);
-
-	static const uint8_t init2[] = {SSD1306_SETDISPLAYOFFSET, // 0xD3
-                                              0x0,                      // no offset
-                                              SSD1306_SETSTARTLINE | 0x0, // line #0
-                                              SSD1306_CHARGEPUMP};        // 0x8D
-	ssd1306_commandList(init2, sizeof(init2));
-
-	ssd1306_command1((voltage_state == SSD1306_EXTERNALVCC) ? 0x10 : 0x14);
-
-	static const uint8_t init3[] = {SSD1306_MEMORYMODE, // 0x20
-                                              0x00, // 0x0 act like ks0108
-                                              SSD1306_SEGREMAP | 0x1,
-                                              SSD1306_COMSCANDEC};
+	static const uint8_t init3[] = {
+                                        0x00,                           //Set Co and D/C to zero
+                                        SSD1306_MEMORYMODE,             // 0x20
+                                        0x00,                           // 0x0 act like ks0108
+                                        SSD1306_SEGREMAP | 0x01,
+                                        SSD1306_COMSCANDEC};
 	ssd1306_commandList(init3, sizeof(init3));
 
 	uint8_t comPins = 0x02;
@@ -90,13 +117,16 @@ void display_oled_init ( uint8_t voltage_state, uint8_t w, uint8_t h ) {
     ssd1306_command1((voltage_state == SSD1306_EXTERNALVCC) ? 0x22 : 0xF1);
     
     static const uint8_t init5[] = {
-        SSD1306_SETVCOMDETECT, // 0xDB
-        0x40,
-        SSD1306_DISPLAYALLON_RESUME, // 0xA4
-        SSD1306_NORMALDISPLAY,       // 0xA6
-        SSD1306_DEACTIVATE_SCROLL,
-        SSD1306_DISPLAYON}; // Main screen turn on
+                                        0x00,                           //Set Co and D/C to zero
+                                        SSD1306_SETVCOMDETECT,          // 0xDB
+                                        0x40,
+                                        SSD1306_DISPLAYALLON_RESUME,    // 0xA4
+                                        SSD1306_NORMALDISPLAY,          // 0xA6
+                                        SSD1306_DEACTIVATE_SCROLL,
+                                        SSD1306_DISPLAYON};             // Main screen turn on
     ssd1306_commandList(init5, sizeof(init5));
+
+    return(true);
 }
 
 //TODO::: The following comment is for reference only
@@ -106,9 +136,17 @@ void setTextSize (uint8_t s_x, uint8_t s_y) {
     oled.textsize_y = (s_y > 0) ? s_y : 1;
 }
 
-
-void oled_clear(void) {
-    memset(oled.screen_buffer, 0xFF, oled.screen_width * ((oled.screen_height + 7) / 8));
+/**
+ * @brief   Clear contents of display buffer (set all pixels to off).
+ * @return  None (void).
+ * 
+ * @note    Changes buffer contents only, no immediate effect on display.
+ *          Follow up with a call to display(), or with other graphics
+ *          commands as needed by one's own application.  Borrowed from 
+ *          clearDisplay function of Adafruit_SSD1306.ccp (line 646)
+*/
+void oled_clear_buffer(void) {
+    memset(oled.screen_buffer, 0x00, (oled.screen_width * ((oled.screen_height + 7) / 8)));
 }
 
 void display_oled_drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[],
@@ -168,54 +206,59 @@ bool drawPixel(int16_t x, int16_t y, uint8_t color) {
     }
 }
 
+/**
+ * @brief Send a list of commands to the display
+ * 
+ * @param command_pointer -- pointer to array
+ *                          of bytes to send to the
+ *                          display
+ * @param bytes_to_transmit -- how many bytes to 
+ *                          transmit
+ * @note This function was borrowed from
+ * ssd1306_commandList, which can be found 
+ * on line 387 of Adafruit_SSD1306.cpp
+ */
 void ssd1306_commandList(const uint8_t * command_pointer, uint8_t bytes_to_transmit) {
-    uint8_t data;
     HAL_StatusTypeDef ret;
-    /**
-     * Set Co and D/C bit to zero
-     */
-	data = 0x00;  
-    ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 1, HAL_MAX_DELAY);
 
-    if(ret != HAL_OK){
-        print_string("I2C Transmit Error 1",LF);
-    }
+    /**
+     * Data byte 0x00, to set
+     * Co and D/C to 0, shall be passed 
+     * in as part of the data array! 
+     */
+
 
     /**
      * Send the list of commands 
      */
-	while(bytes_to_transmit--) {
-		ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command_pointer, 1, HAL_MAX_DELAY);
-        if(ret != HAL_OK){
-            print_string("I2C Transmit Error 2",LF);
-        }
-		command_pointer++;
-	}
+    ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) command_pointer, bytes_to_transmit, HAL_MAX_DELAY);
+    if(ret != HAL_OK){
+        print_string("I2C Transmit Error 2",LF);
+    }
 }
 
+/**
+ * @brief Send a single command to 
+ * the OLED display. 
+ * 
+ * @param command 
+ * 
+ * @note This function borrowed from 
+ * routine ssd1306_command1(uint8_t c), 
+ * which can be found on line 373
+ * of Adafruit_SSD1306.cpp
+ */
 void ssd1306_command1(uint8_t command) {
   
-    uint8_t data;
     HAL_StatusTypeDef ret;
-    
-    /**
-     * Set Co and D/C bit to zero
-     */
-    data = 0x00;  
-    ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 1, 10000);
+    uint8_t init1[] = {
+                                    0x00, //Needed to set Co and D/C to 0
+                                    command};
+                                    
+    ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *)init1, 2, HAL_MAX_DELAY);
     if(ret != HAL_OK){
-        print_string("I2C Transmit Error 210",LF);
+        print_string("I2C Transmit Error 255",LF);
     }
-
-    /**
-     * Send command
-     */
-    data = command;  
-    ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) &data, 1, 10000);
-    if(ret != HAL_OK){
-        print_string("I2C Transmit Error 210",LF);
-    }
-
 }
 
 //TODO::: need to define a sort of "write string" function
@@ -284,19 +327,23 @@ void writeStringHelper(uint8_t c, uint8_t color) {
         oled.cursor_x = 0;
         oled.cursor_y += (int16_t)oled.textsize_y * (uint8_t)(oled.oled_font -> yAdvance);
     } 
-    else if (c != '\r') {
+    else if (c != '\r') {       //Ignore carriage returns
         uint8_t first = oled.oled_font -> first;
         
+        /**
+         * Verify the character is valid
+         * with the IF conditional 
+         */
         if ((c >= first) && (c <= (uint8_t)(oled.oled_font->last))) {
 
             // GFXglyph *glyph = pgm_read_glyph_ptr(gfxFont, c - first);
             GFXglyph *glyph = oled.oled_font -> glyph + (c - first);
 
-            uint8_t w = &glyph -> width;
-            uint8_t h = &glyph -> height;
+            uint8_t w = (uint8_t)(glyph -> width);     //TODO start at line 1243 in Adafruit_GFX.cpp
+            uint8_t h = (uint8_t)(glyph -> height);
             
             if ((w > 0) && (h > 0)) { // Is there an associated bitmap?
-                int16_t xo = (int8_t)(&glyph->xOffset); 
+                int16_t xo = (int8_t)(glyph->xOffset); 
                 if (oled.wrap_text && ((oled.cursor_x + oled.textsize_x * (xo + w)) > oled.screen_width)) {
                     oled.cursor_x = 0;
                     oled.cursor_y += (int16_t)oled.textsize_y * (uint8_t)(oled.oled_font -> yAdvance);
@@ -305,7 +352,7 @@ void writeStringHelper(uint8_t c, uint8_t color) {
                 drawChar(oled.cursor_x, oled.cursor_y, c, color, 
                         oled.textsize_x, oled.textsize_y);
             }
-            oled.cursor_x += (uint8_t)(&glyph -> xAdvance) * (int16_t)oled.textsize_x;
+            oled.cursor_x += (uint8_t)(glyph -> xAdvance) * (int16_t)oled.textsize_x;
         }
     }
 }
@@ -331,13 +378,13 @@ void drawChar(int16_t x, int16_t y, unsigned char c,
     // uint8_t *bitmap = pgm_read_bitmap_ptr(oled.oled_font);  //TODO can remove this line
     uint8_t *bitmap = oled.oled_font -> bitmap;
 
-    uint16_t bo = (uint16_t)(&glyph->bitmapOffset);
+    uint16_t bo = (uint16_t)(glyph->bitmapOffset);
 
-    uint8_t w = (uint8_t)(&glyph -> width),
-            h = (uint8_t)(&glyph -> height);
+    uint8_t w = (uint8_t)(glyph -> width),
+            h = (uint8_t)(glyph -> height);
 
-    int8_t xo = (int8_t)(&glyph -> xOffset),
-           yo = (int8_t)(&glyph -> yOffset);
+    int8_t xo = (int8_t)(glyph -> xOffset),
+           yo = (int8_t)(glyph -> yOffset);
     
     uint8_t xx, yy, bits = 0, bit = 0;
     
@@ -372,8 +419,8 @@ void drawChar(int16_t x, int16_t y, unsigned char c,
     // startWrite();
     for (yy = 0; yy < h; yy++) {
       for (xx = 0; xx < w; xx++) {
-        if (!(bit++ & 7)) {
-          bits = (uint8_t)(&bitmap[bo++]);
+        if (!(bit++ & 7)) {s
+          bits = (uint8_t)(bitmap[bo++]);
         }
         if (bits & 0x80) {
           if (size_x == 1 && size_y == 1) {
@@ -473,38 +520,41 @@ void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     }
 }
 
-
+/**
+ * @brief For reference information
+ * see line 926 in file Adafruit_SSD1306.cpp
+ */
 void updateDisplay(void) {
     HAL_StatusTypeDef ret;
+    uint16_t i = 0;
+
     /**
      * Set Co and D/C bit to zero
      */
     static const uint8_t dlist1[] = {
-        SSD1306_PAGEADDR,
-        0,                      // Page start address
-        0xFF,                   // Page end (not really, but works here)
-        SSD1306_COLUMNADDR, 0}; // Column start address
+                                        0x00,                       // Set Co and D/C bits to zero
+                                        SSD1306_PAGEADDR,           // 0x22
+                                        0x00,                       // Page start address
+                                        0xFF,                       // Page end (not really, but works here)
+                                        SSD1306_COLUMNADDR, 0x00};  // Column start address
     ssd1306_commandList(dlist1, sizeof(dlist1));
-    ssd1306_command1(oled.screen_width - 1); // Column end address
+    
+    ssd1306_command1((uint8_t)(oled.screen_width - 1)); // Column end address
 
-    uint16_t count = oled.screen_width * ((oled.screen_height + 7) / 8);
-    uint8_t *data_pointer = oled.screen_buffer;
-    // if (wire) { // I2C
-        // wire->beginTransmission(i2caddr);
-        // WIRE_WRITE((uint8_t)0x40);
-        // uint16_t bytesOut = 1;
-    while (count--) {
-        
-        /**
-         * Transmit data from the 
-         * internal buffer to the screen's 
-         * memory
-         */
-        ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) data_pointer, 1, HAL_MAX_DELAY);
-        if(ret != HAL_OK){
-            print_string("I2C Transmit Error 2",LF);
-        }
-        data_pointer++;
+    uint16_t count = (oled.screen_width * ((oled.screen_height + 7) / 8));   //Add a byte for 0x40 -- which much we transmitted first
+    
+    uint8_t *transmit_buffer;
+    transmit_buffer = (uint8_t *)malloc((count + 1));   // Need room for 0x40 at beginning of buffer
+
+    transmit_buffer[0] = 0x40;
+    for(i=1; i<(count+1); i++){
+        transmit_buffer[i] = oled.screen_buffer[i-1];
+    }
+
+    
+    ret = HAL_I2C_Master_Transmit(&hi2c2, OLED_SCREEN_ADDRESS, (uint8_t *) transmit_buffer, (count + 1), HAL_MAX_DELAY);
+    if(ret != HAL_OK){
+        print_string("I2C Transmit Error 518",LF);
     }
 }
 

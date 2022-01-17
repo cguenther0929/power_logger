@@ -1,5 +1,5 @@
 oled_128b64.c:98:6:setTextSize	0	static
-oled_128b64.c:104:6:oled_clear	0	static
+oled_128b64.c:104:6:oled_clear_buffer	0	static
 oled_128b64.c:127:6:drawPixel	20	static
 oled_128b64.c:108:6:display_oled_drawBitmap	64	static
 oled_128b64.c:165:6:ssd1306_commandList	32	static,ignoring_inline_asm
