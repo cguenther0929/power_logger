@@ -12,7 +12,6 @@
 
 
 void init_ad4681 (ad4681Data * a2d) {
-    uint8_t * spi_data;
 
     /**
      * The configuration 1 register
@@ -45,12 +44,13 @@ void init_ad4681 (ad4681Data * a2d) {
      * Details of this register can be 
      * read on datasheet p27 of 29.  
      */
-    
-    *spi_data = (AD4681_WRITE_BIT << AD4681_WR_BIT_OFFSET) |
+    const uint8_t spi_data[] = {
+                (AD4681_WRITE_BIT << AD4681_WR_BIT_OFFSET) |
                 (AD4681_CONFIG2_REG_ADDR << AD4681_ADDR_BIT_OFFSET) |
-                (OUTPUT_ON_SDOA_ONLY << CONVERSION_MODE_BIT_OFFSET );
+                (OUTPUT_ON_SDOA_ONLY << CONVERSION_MODE_BIT_OFFSET )
+    };
 
-    HAL_SPI_Transmit(&hspi1, (uint8_t *)spi_data, (uint16_t) 2, (uint32_t) 10);     // Timeout in us
+    HAL_SPI_Transmit(&hspi1, (uint8_t *)spi_data, (uint16_t) 2, (uint32_t) 10000);     // Timeout in us
 
 
     /**
@@ -86,14 +86,16 @@ get_ad4681_samples( ad4681Data * a2d ) {
     
     /**
      *  Grab A and B samples.
-     * In order for low latenency p22
+     * In order for low latency p22
      * in datasheet, need to pulse the 
      * CS line low before taking the sample.
      */
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_RESET);
-    blocking_us_delay(CS_PULSE_DELAY_uS);      
+    HAL_Delay(1);
+    // blocking_us_delay(CS_PULSE_DELAY_uS);      //TODO we want this line back in
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_SET);
-    blocking_us_delay(CS_PULSE_DELAY_uS);      
+    HAL_Delay(1);
+    // blocking_us_delay(CS_PULSE_DELAY_uS);        //TODO we want this line back in
 
     /** 
      * Drop the CS line 

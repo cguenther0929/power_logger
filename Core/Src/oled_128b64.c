@@ -288,14 +288,41 @@ void ssd1306_command1(uint8_t command) {
 //     return;
 // }
 
-//TODO::: There needs to be a function for setting the 
-//TODO::: cursor position 
+/**
+ * @brief Set x/y cursor location 
+ * 
+ * @param x -- x location in pixels
+ * @param y -- y location in pixels
+ * 
+ * @note This code was borrowed from
+ * Adafruit_SSD1306::setCursor, which can 
+ * be found on line 128 of Adafruit_SSD1306.cpp
+ */
+void setCursor(uint16_t x, uint16_t y) {
+    oled.cursor_x = x;
+    oled.cursor_y = y;
+}
 
 void writeOledString(const char * c, uint8_t color) {
     while(*c != '\0'){
         writeStringHelper((uint8_t) *c,color);                    //Load the U1 TX buffer with the current character
         c++;                           //Increment the pointer memory address
     }
+}
+
+void writeOledFloat(float number, uint8_t color) {
+    char temp_buffer[8];        //Define the array that will hold the ASCII values
+    char *c = temp_buffer;
+
+    /* USE SPRINT F TO BUILD THE ARRAY OF ASCII CHARACTERS */
+    sprintf((char *)temp_buffer, "%.2f", number);   //f tells the function we want to print a float value
+
+    while(*c != '\0'){
+        writeStringHelper((uint8_t) *c,color);                    //Load the U1 TX buffer with the current character
+        c++;                           //Increment the pointer memory address
+    }
+
+
 }
 
 
@@ -419,7 +446,7 @@ void drawChar(int16_t x, int16_t y, unsigned char c,
     // startWrite();
     for (yy = 0; yy < h; yy++) {
       for (xx = 0; xx < w; xx++) {
-        if (!(bit++ & 7)) {s
+        if (!(bit++ & 7)) {
           bits = (uint8_t)(bitmap[bo++]);
         }
         if (bits & 0x80) {

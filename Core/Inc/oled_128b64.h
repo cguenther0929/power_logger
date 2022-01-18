@@ -43,8 +43,8 @@ struct oled {
 
     bool        wrap_text;
 
-    uint8_t     cursor_y;           // Current position of the y-cursor
-    uint8_t     cursor_x;           // Current position of the x-cursor
+    uint16_t    cursor_y;           // Current position of the y-cursor
+    uint16_t    cursor_x;           // Current position of the x-cursor
 
     GFXfont     * oled_font;          // Pointer to font data
 
@@ -196,8 +196,22 @@ void ssd1306_command1(uint8_t command);
 */
 bool drawPixel(int16_t x, int16_t y, uint8_t color);
 
-//TODO need to cleanup following function
+/**
+ * @brief Set x/y cursor location 
+ * 
+ * @param x -- x location in pixels
+ * @param y -- y location in pixels
+ * 
+ * @return Nothing 
+ */
+void setCursor(uint16_t x, uint16_t y);
+
+
+//TODO need to comment
 void writeOledString(const char * c, uint8_t color);
+
+//TODO need to comment
+void writeOledFloat(float number, uint8_t color);
 
 /**
  * FUNCTION: void drawChar(int16_t x, int16_t y, unsigned char c,

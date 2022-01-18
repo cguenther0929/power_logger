@@ -159,6 +159,7 @@ int main(void)
   /* USER CODE BEGIN Init */
 
 
+
   /* Configure time keeping flags */
   time.led_fast_blink = false;
   time.flag_10ms_tick = false;
@@ -194,9 +195,17 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-  print_string("Chip Reset.",LF);
-  print_16b_binary_rep(255,LF);
-  print_float(3.14159,LF);
+  
+  /** 
+   * Initialization for the 
+   * A2D IC 
+  */ 
+  HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_SET);
+  init_ad4681(&a2d);
+  
+  // print_string("Chip Reset.",LF);
+  // print_16b_binary_rep(255,LF);
+  // print_float(3.14159,LF);
 
 //  HAL_TIM_Base_Start(&htim2);			// Start timer #2 for us delay timer
   HAL_TIM_Base_Start_IT(&htim6);
@@ -222,8 +231,41 @@ int main(void)
   setTextSize(1,1);             // 21 characters per line
   display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
   updateDisplay();
-  writeOledString("Hello!", SSD1306_WHITE);
+  HAL_Delay(1000);
+  
+  setCursor(0,15);
+  writeOledString("Print Float...\n", SSD1306_WHITE);
+  writeOledFloat(3.1415, SSD1306_WHITE);
   updateDisplay();
+  HAL_Delay(2500);
+  
+  oled_clear_buffer();
+  setCursor(0,15);
+  // writeOledString(" \n", SSD1306_WHITE);
+  writeOledString("Hello Awesome\n", SSD1306_WHITE);
+  writeOledString("World!", SSD1306_WHITE);
+  updateDisplay();
+
+  HAL_Delay(2500);
+  oled_clear_buffer();
+  setCursor(0,15);
+  writeOledString("Let's Go\n", SSD1306_WHITE);
+  writeOledString("Brandon!!", SSD1306_WHITE);
+  updateDisplay();
+  HAL_Delay(3000);
+  //TODO end of OLED test code
+
+  //TODO START A2D Test Code
+  // get_ad4681_samples( &a2d );
+  // oled_clear_buffer();
+  // setCursor(0,15);
+  // writeOledString("Volt: ", SSD1306_WHITE);
+  // writeOledFloat(a2d_p -> voltage_f, SSD1306_WHITE);
+  // writeOledString("\n", SSD1306_WHITE);
+  // writeOledString("Curr: ", SSD1306_WHITE);
+  // writeOledFloat(a2d_p -> current_f, SSD1306_WHITE);
+  // updateDisplay();
+  //TODO END A2D Test Code
 
 //  oled.current_screen = SCREEN_MAIN;
 //  err_p -> error_code = NO_ERROR;
@@ -283,7 +325,6 @@ int main(void)
 
 
   /**
-   * Draw Splash screen
    */
   // TODO need to define bitmap image, screen width, and splash screen dimensions
   // display_oled_drawBitmap((oled.screen_width - BITMAP_WIDTH) / 2, (oled.screen_height - BITMAP_HEIGHT) / 2,
@@ -466,7 +507,7 @@ static void MX_I2C2_Init(void)
 
   /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
-  hi2c2.Init.ClockSpeed = 10000;
+  hi2c2.Init.ClockSpeed = 100000;
   hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c2.Init.OwnAddress1 = 0;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
