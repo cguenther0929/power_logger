@@ -43,15 +43,32 @@ void init_ad4681 (ad4681Data * a2d) {
      * 
      * Details of this register can be 
      * read on datasheet p27 of 29.  
+     * 
+     * All reads and writes to device 
+     * registers must consist of two 
+     * bytes (16 clock cycles)
      */
-    const uint8_t spi_data[] = {
-                (AD4681_WRITE_BIT << AD4681_WR_BIT_OFFSET) |
-                (AD4681_CONFIG2_REG_ADDR << AD4681_ADDR_BIT_OFFSET) |
-                (OUTPUT_ON_SDOA_ONLY << CONVERSION_MODE_BIT_OFFSET )
-    };
+    uint8_t spi_data[16] = {0x00};       //Define the SPI data buffer (index 0 to 15)
+    
+    spi_data[AD4681_WR_BIT_OFFSET] = AD4681_WRITE_BIT;
+    spi_data[14] = (AD4681_CONFIG2_REG_ADDR >> 2) & 0x01;       //Set address bits [14:12]
+    spi_data[13] = (AD4681_CONFIG2_REG_ADDR >> 1) & 0x01;
+    spi_data[12] = (AD4681_CONFIG2_REG_ADDR >> 0) & 0x01;
+    spi_data[CONVERSION_MODE_BIT_OFFSET] = OUTPUT_ON_SDOA_ONLY;
 
-    HAL_SPI_Transmit(&hspi1, (uint8_t *)spi_data, (uint16_t) 2, (uint32_t) 10000);     // Timeout in us
+    // const uint8_t spi_data[] |= {
+    //             (uint8_t)(AD4681_WRITE_BIT << AD4681_WR_BIT_OFFSET) |
+    //             (uint8_t)(AD4681_CONFIG2_REG_ADDR << AD4681_ADDR_BIT_OFFSET) |
+    //             (uint8_t)(OUTPUT_ON_SDOA_ONLY << CONVERSION_MODE_BIT_OFFSET )
+    // };
 
+    HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_RESET);
+    HAL_Delay(1);
+
+    HAL_SPI_Transmit(&hspi1, (uint8_t *)spi_data, (uint16_t) 2, (uint32_t) HAL_MAX_DELAY);     // Timeout in us
+
+    HAL_Delay(1);
+    HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_SET);
 
     /**
      * Initializations related to
@@ -71,7 +88,7 @@ void init_ad4681 (ad4681Data * a2d) {
 
 }
 
-get_ad4681_samples( ad4681Data * a2d ) {
+void get_ad4681_samples( ad4681Data * a2d ) {
     
     /**
      * Get time value to know time 

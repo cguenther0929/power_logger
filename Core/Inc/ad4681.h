@@ -11,6 +11,8 @@
 #include "stm32f1xx_hal.h"
 #include "main.h"
 #include "timer.h"
+#include "oled_128b64.h"
+#include "font.h"
 extern SPI_HandleTypeDef hspi1;
 
 typedef struct {

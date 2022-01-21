@@ -33,7 +33,6 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
-// #include <stdio.h>    //For printf statements 
 #include "ad4681.h"
 #include "string.h"
 #include "timer.h"

@@ -1,2 +1,2 @@
-ad4681.c:14:6:init_ad4681	24	static
-ad4681.c:74:1:get_ad4681_samples	32	static
+ad4681.c:14:6:init_ad4681	32	static
+ad4681.c:91:6:get_ad4681_samples	32	static

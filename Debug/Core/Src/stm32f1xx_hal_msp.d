@@ -29,7 +29,7 @@ Core/Src/stm32f1xx_hal_msp.o: ../Core/Src/stm32f1xx_hal_msp.c \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
  ../Core/Inc/ad4681.h ../Core/Inc/main.h ../Core/Inc/timer.h \
- ../Core/Inc/uart.h ../Core/Inc/oled_128b64.h ../Core/Inc/font.h \
+ ../Core/Inc/oled_128b64.h ../Core/Inc/font.h ../Core/Inc/uart.h \
  ../Core/Inc/config.h ../Core/Inc/common.h
 
 ../Core/Inc/main.h:
@@ -98,11 +98,11 @@ Core/Src/stm32f1xx_hal_msp.o: ../Core/Src/stm32f1xx_hal_msp.c \
 
 ../Core/Inc/timer.h:
 
-../Core/Inc/uart.h:
-
 ../Core/Inc/oled_128b64.h:
 
 ../Core/Inc/font.h:
+
+../Core/Inc/uart.h:
 
 ../Core/Inc/config.h:
 
