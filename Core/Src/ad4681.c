@@ -13,6 +13,8 @@
 
 void init_ad4681 (ad4681Data * a2d) {
 
+    HAL_StatusTypeDef ret;
+    
     /**
      * The configuration 1 register
      * is reset and defaults as  
@@ -48,26 +50,27 @@ void init_ad4681 (ad4681Data * a2d) {
      * registers must consist of two 
      * bytes (16 clock cycles)
      */
-    uint8_t spi_data[16] = {0x00};       //Define the SPI data buffer (index 0 to 15)
+    uint16_t data_buffer[1] = {0x00};
     
-    spi_data[AD4681_WR_BIT_OFFSET] = AD4681_WRITE_BIT;
-    spi_data[14] = (AD4681_CONFIG2_REG_ADDR >> 2) & 0x01;       //Set address bits [14:12]
-    spi_data[13] = (AD4681_CONFIG2_REG_ADDR >> 1) & 0x01;
-    spi_data[12] = (AD4681_CONFIG2_REG_ADDR >> 0) & 0x01;
-    spi_data[CONVERSION_MODE_BIT_OFFSET] = OUTPUT_ON_SDOA_ONLY;
+    uint8_t spi_data[2] = {0x00};       //Define the SPI data buffer (index 0 to 15)
 
-    // const uint8_t spi_data[] |= {
-    //             (uint8_t)(AD4681_WRITE_BIT << AD4681_WR_BIT_OFFSET) |
-    //             (uint8_t)(AD4681_CONFIG2_REG_ADDR << AD4681_ADDR_BIT_OFFSET) |
-    //             (uint8_t)(OUTPUT_ON_SDOA_ONLY << CONVERSION_MODE_BIT_OFFSET )
-    // };
+    data_buffer[0] |= (uint16_t)((AD4681_WRITE_BIT << AD4681_WR_BIT_OFFSET) |
+                                    (AD4681_CONFIG2_REG_ADDR << AD4681_ADDR_BIT_OFFSET) |
+                                    (OUTPUT_ON_SDOA_ONLY << CONVERSION_MODE_BIT_OFFSET)
+
+    );    
+
+    spi_data[0] = (uint8_t)((data_buffer[0] >> 8) & 0xFF);
+    spi_data[1] = (uint8_t)(data_buffer[0] & 0xFF);
 
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_RESET);
     HAL_Delay(1);
 
-    HAL_SPI_Transmit(&hspi1, (uint8_t *)spi_data, (uint16_t) 2, (uint32_t) HAL_MAX_DELAY);     // Timeout in us
+    ret = HAL_SPI_Transmit(&hspi1, (uint8_t *)spi_data, (uint16_t) 2, (uint32_t) 200);     // Timeout in us
+    if(ret != HAL_OK){
+        print_string("SPI Transmit Error",LF);
+    }
 
-    HAL_Delay(1);
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_SET);
 
     /**
@@ -89,7 +92,8 @@ void init_ad4681 (ad4681Data * a2d) {
 }
 
 void get_ad4681_samples( ad4681Data * a2d ) {
-    
+    HAL_StatusTypeDef ret;
+
     /**
      * Get time value to know time 
      * elapsed between samples
@@ -122,7 +126,10 @@ void get_ad4681_samples( ad4681Data * a2d ) {
     */
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_RESET);
     
-    HAL_SPI_Receive(&hspi1, (uint8_t *)a2d -> ad4681_buffer, 4, 1000);
+    ret = HAL_SPI_Receive(&hspi1, (uint8_t *)a2d -> ad4681_buffer, 4, 1000);
+    if(ret != HAL_OK){
+        print_string("I2C Transmit Error 255",LF);
+    }
     
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_SET);
     

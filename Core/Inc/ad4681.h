@@ -13,6 +13,8 @@
 #include "timer.h"
 #include "oled_128b64.h"
 #include "font.h"
+#include "uart.h"
+
 extern SPI_HandleTypeDef hspi1;
 
 typedef struct {
@@ -57,14 +59,14 @@ typedef struct {
 /**
  * Read vs. Write Bit settings
  */
-#define AD4681_WR_BIT_OFFSET            0x0F
+#define AD4681_WR_BIT_OFFSET            0x0F            //Bit position 15 or 15 (uint16_t)
 #define AD4681_WRITE_BIT                0x01
 #define AD4681_READ_BIT                 0x00
 
 /**
  * Register addresses
  */
-#define AD4681_ADDR_BIT_OFFSET          0x0C
+#define AD4681_ADDR_BIT_OFFSET          0x0C            //Bit position 12 of 15 (uint16_t)
 #define AD4681_CONFIG1_REG_ADDR         0x01
 #define AD4681_CONFIG2_REG_ADDR         0x02
 #define AD4681_ALERT_REG_ADDR           0x03
@@ -77,7 +79,7 @@ typedef struct {
  * -------------------------
  * Oversample mode  
 */
-#define OVSAMP_MODE_BIT_OFFSET          0x09
+#define OVSAMP_MODE_BIT_OFFSET          0x09        //Bit position 9 of 15 (uint16_t)
 #define OVSAMP_MODE_DISABLED            0x00
 #define OVSAMP_MODE_ENABLED             0x01
 
@@ -148,7 +150,7 @@ typedef struct {
  * conversion results serial 
  * data output
 */
-#define CONVERSION_MODE_BIT_OFFSET      0x08
+#define CONVERSION_MODE_BIT_OFFSET      0x08        //Bit position 8 of 16 (uint16_t)
 #define OUTPUT_ON_SDOA_AND_SDOB         0x00
 #define OUTPUT_ON_SDOA_ONLY             0x01        // Both samples clocked out on same pin (SDOA)
 

@@ -196,12 +196,6 @@ int main(void)
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   
-  /** 
-   * Initialization for the 
-   * A2D IC 
-  */ 
-  HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_SET);
-  init_ad4681(&a2d);
   
   // print_string("Chip Reset.",LF);
   // print_16b_binary_rep(255,LF);
@@ -212,7 +206,6 @@ int main(void)
 //  init_ad4681 ( &a2d );                 // Initialize the A2D
 
 /**
- * Initialize the OLED 
  * Display 
  * 
  */
@@ -231,33 +224,40 @@ int main(void)
   setTextSize(1,1);             // 21 characters per line
   display_oled_init(SSD1306_SWITCHCAPVCC, SCREEN_WIDTH, SCREEN_HEIGHT);
   updateDisplay();
-  HAL_Delay(1000);
+  // HAL_Delay(1000);
   
-  setCursor(0,15);
-  writeOledString("Print Float...\n", SSD1306_WHITE);
-  writeOledFloat(3.1415, SSD1306_WHITE);
-  updateDisplay();
-  HAL_Delay(2500);
+  // setCursor(0,15);
+  // writeOledString("Print Float...\n", SSD1306_WHITE);
+  // writeOledFloat(3.1415, SSD1306_WHITE);
+  // updateDisplay();
+  // HAL_Delay(2500);
   
-  oled_clear_buffer();
-  setCursor(0,15);
-  // writeOledString(" \n", SSD1306_WHITE);
-  writeOledString("Hello Awesome\n", SSD1306_WHITE);
-  writeOledString("World!", SSD1306_WHITE);
-  updateDisplay();
+  // oled_clear_buffer();
+  // setCursor(0,15);
+  // // writeOledString(" \n", SSD1306_WHITE);
+  // writeOledString("Hello Awesome\n", SSD1306_WHITE);
+  // writeOledString("World!", SSD1306_WHITE);
+  // updateDisplay();
 
-  HAL_Delay(2500);
+  // HAL_Delay(2500);
   oled_clear_buffer();
   setCursor(0,15);
   writeOledString("Let's Go\n", SSD1306_WHITE);
   writeOledString("Brandon!!", SSD1306_WHITE);
   updateDisplay();
-  HAL_Delay(3000);
   //TODO end of OLED test code
 
   //TODO START A2D Test Code
+  /** 
+   * Initialization for the 
+   * A2D IC 
+  */ 
+  HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_SET);
+  HAL_Delay(1);
+  init_ad4681(&a2d);
+  
+  
   // get_ad4681_samples( &a2d );
-  // oled_clear_buffer();
   // setCursor(0,15);
   // writeOledString("Volt: ", SSD1306_WHITE);
   // writeOledFloat(a2d_p -> voltage_f, SSD1306_WHITE);
@@ -546,7 +546,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
   hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
