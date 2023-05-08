@@ -17,7 +17,7 @@
 
 extern SPI_HandleTypeDef hspi1;
 
-typedef struct {
+typedef struct ad4681Data {
     
     bool        first_sample;                   // False until first sample is recorded
     bool        logging_status;                 // Indicates if unit is 'running'

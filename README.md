@@ -9,4 +9,4 @@ Bare metal -- application written in C.  A third party FATFS middleware core is 
 * All source files for the main application are included within the repository, as well as the middleware required to implement the FATFS.    
 
 # Tagged Versions 
-v0.0.1 -- TBD
+v0.0.1 -- Able to write to OLED and read/write from SD card.  

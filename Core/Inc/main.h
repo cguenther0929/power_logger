@@ -33,8 +33,8 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
-#include "ad4681.h"
 #include "string.h"
+#include "ad4681.h"
 #include "timer.h"
 #include "uart.h"
 #include "oled_128b64.h"
@@ -147,16 +147,12 @@ void log_samples( void );
 #define ADC_SPI1_CSn_GPIO_Port GPIOA
 #define LED4_Pin GPIO_PIN_10
 #define LED4_GPIO_Port GPIOE
-#define SD_SPI2_MOSI_Pin GPIO_PIN_15
-#define SD_SPI2_MOSI_GPIO_Port GPIOB
 #define REV_2_Pin GPIO_PIN_15
 #define REV_2_GPIO_Port GPIOD
 #define ADC_SPI1_CLK_Pin GPIO_PIN_5
 #define ADC_SPI1_CLK_GPIO_Port GPIOA
 #define LED1_Pin GPIO_PIN_7
 #define LED1_GPIO_Port GPIOE
-#define SD_SPI2_MISO_Pin GPIO_PIN_14
-#define SD_SPI2_MISO_GPIO_Port GPIOB
 #define REV_1_Pin GPIO_PIN_14
 #define REV_1_GPIO_Port GPIOD
 #define ADC_SPI1_MISO_Pin GPIO_PIN_6
@@ -165,8 +161,6 @@ void log_samples( void );
 #define LED2_GPIO_Port GPIOE
 #define DISP_I2C2_SCL_Pin GPIO_PIN_10
 #define DISP_I2C2_SCL_GPIO_Port GPIOB
-#define SD_SPI2_CLK_Pin GPIO_PIN_13
-#define SD_SPI2_CLK_GPIO_Port GPIOB
 #define REV_0_Pin GPIO_PIN_13
 #define REV_0_GPIO_Port GPIOD
 #define ADC_ALRTn_Pin GPIO_PIN_3
@@ -180,6 +174,7 @@ void log_samples( void );
 #define SD_SPI2_CSn_Pin GPIO_PIN_12
 #define SD_SPI2_CSn_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
+#define SD_SPI_HANDLE hspi2
 
 /* USER CODE END Private defines */
 

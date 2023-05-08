@@ -325,6 +325,18 @@ void writeOledFloat(float number, uint8_t color) {
 
 }
 
+void writeOledDword(uint32_t number, uint8_t color) {
+    char temp_buffer[12];        // Define the array that will hold the ASCII values
+    char *c = temp_buffer;
+
+    /* Sprintf to build a buffer of ascii characters */
+    sprintf((char *)temp_buffer, "%.4G", (double)number);   //%u defines the format to be an unsigned decimal number
+
+    while(*c != '\0'){
+        writeStringHelper((uint8_t) *c,color);                    //Load the U1 TX buffer with the current character
+        c++;                           //Increment the pointer memory address
+    }
+}
 
 //TODO::: The following is for reference only and can be deleted
 //TODO::: For this function, reference Adafruit_GFX.cpp  line 1243
@@ -570,8 +582,9 @@ void updateDisplay(void) {
 
     uint16_t count = (oled.screen_width * ((oled.screen_height + 7) / 8));   //Add a byte for 0x40 -- which much we transmitted first
     
-    uint8_t *transmit_buffer;
-    transmit_buffer = (uint8_t *)malloc((count + 1));   // Need room for 0x40 at beginning of buffer
+    uint8_t transmit_buffer[MAX_BUFFER_SIZE + 1] = {0x00};
+    
+    // transmit_buffer = (uint8_t *)malloc((count + 1));   // Need room for 0x40 at beginning of buffer
 
     transmit_buffer[0] = 0x40;
     for(i=1; i<(count+1); i++){

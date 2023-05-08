@@ -7,7 +7,7 @@
 C_SRCS += \
 ../Core/Src/FreeSans9pt7b.c \
 ../Core/Src/ad4681.c \
-../Core/Src/fatfs_sd.c \
+../Core/Src/fstfs_sd.c \
 ../Core/Src/main.c \
 ../Core/Src/oled_128b64.c \
 ../Core/Src/stm32f1xx_hal_msp.c \
@@ -21,7 +21,7 @@ C_SRCS += \
 OBJS += \
 ./Core/Src/FreeSans9pt7b.o \
 ./Core/Src/ad4681.o \
-./Core/Src/fatfs_sd.o \
+./Core/Src/fstfs_sd.o \
 ./Core/Src/main.o \
 ./Core/Src/oled_128b64.o \
 ./Core/Src/stm32f1xx_hal_msp.o \
@@ -35,7 +35,7 @@ OBJS += \
 C_DEPS += \
 ./Core/Src/FreeSans9pt7b.d \
 ./Core/Src/ad4681.d \
-./Core/Src/fatfs_sd.d \
+./Core/Src/fstfs_sd.d \
 ./Core/Src/main.d \
 ./Core/Src/oled_128b64.d \
 ./Core/Src/stm32f1xx_hal_msp.d \
@@ -54,7 +54,7 @@ Core/Src/%.o: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/FreeSans9pt7b.d ./Core/Src/FreeSans9pt7b.o ./Core/Src/ad4681.d ./Core/Src/ad4681.o ./Core/Src/fatfs_sd.d ./Core/Src/fatfs_sd.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/oled_128b64.d ./Core/Src/oled_128b64.o ./Core/Src/stm32f1xx_hal_msp.d ./Core/Src/stm32f1xx_hal_msp.o ./Core/Src/stm32f1xx_it.d ./Core/Src/stm32f1xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32f1xx.d ./Core/Src/system_stm32f1xx.o ./Core/Src/timer.d ./Core/Src/timer.o ./Core/Src/uart.d ./Core/Src/uart.o
+	-$(RM) ./Core/Src/FreeSans9pt7b.d ./Core/Src/FreeSans9pt7b.o ./Core/Src/ad4681.d ./Core/Src/ad4681.o ./Core/Src/fstfs_sd.d ./Core/Src/fstfs_sd.o ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/oled_128b64.d ./Core/Src/oled_128b64.o ./Core/Src/stm32f1xx_hal_msp.d ./Core/Src/stm32f1xx_hal_msp.o ./Core/Src/stm32f1xx_it.d ./Core/Src/stm32f1xx_it.o ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/system_stm32f1xx.d ./Core/Src/system_stm32f1xx.o ./Core/Src/timer.d ./Core/Src/timer.o ./Core/Src/uart.d ./Core/Src/uart.o
 
 .PHONY: clean-Core-2f-Src
 

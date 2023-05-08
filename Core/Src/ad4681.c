@@ -28,7 +28,7 @@ void init_ad4681 (ad4681Data * a2d) {
      * Resolution = Normal Resolution
      * Reference Select = Internal Reference Selected
      * Power Down Mode = Normal Mode
-     * 
+     *
      * Details of this register can be 
      * read on datasheet p26 of 29.  
      */
@@ -42,10 +42,10 @@ void init_ad4681 (ad4681Data * a2d) {
      * Conversion results data format = 2-wire output,
      * so data is output on _both_ pins SDOA and SDOB
      * The reset word = 0x00 (no reset)
-     * 
+     *
      * Details of this register can be 
      * read on datasheet p27 of 29.  
-     * 
+     *
      * All reads and writes to device 
      * registers must consist of two 
      * bytes (16 clock cycles)
@@ -58,7 +58,7 @@ void init_ad4681 (ad4681Data * a2d) {
                                     (AD4681_CONFIG2_REG_ADDR << AD4681_ADDR_BIT_OFFSET) |
                                     (OUTPUT_ON_SDOA_ONLY << CONVERSION_MODE_BIT_OFFSET)
 
-    );    
+    );
 
     spi_data[0] = (uint8_t)((data_buffer[0] >> 8) & 0xFF);
     spi_data[1] = (uint8_t)(data_buffer[0] & 0xFF);
@@ -115,7 +115,7 @@ void get_ad4681_samples( ad4681Data * a2d ) {
     HAL_Delay(1);
     // blocking_us_delay(CS_PULSE_DELAY_uS);      //TODO we want this line back in
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_SET);
-    HAL_Delay(1);
+    // HAL_Delay(1);
     // blocking_us_delay(CS_PULSE_DELAY_uS);        //TODO we want this line back in
 
     /** 
@@ -125,16 +125,17 @@ void get_ad4681_samples( ad4681Data * a2d ) {
      * CS line high again.
     */
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_RESET);
+    HAL_Delay(1);
     
-    ret = HAL_SPI_Receive(&hspi1, (uint8_t *)a2d -> ad4681_buffer, 4, 1000);
+    ret = HAL_SPI_Receive(&hspi1, (uint8_t *)a2d -> ad4681_buffer, 4, 200);
     if(ret != HAL_OK){
-        print_string("I2C Transmit Error 255",LF);
+        print_string("SPI receive error",LF);
     }
     
     HAL_GPIO_WritePin(ADC_SPI1_CSn_GPIO_Port, ADC_SPI1_CSn_Pin, GPIO_PIN_SET);
     
     /* Parse into voltage vs. current */
-    a2d -> voltage_sample = (uint16_t)((a2d -> ad4681_buffer[3] << 8) | (a2d -> ad4681_buffer[2]));
+    a2d -> voltage_sample = (uint16_t)((a2d -> ad4681_buffer[2] << 8) | (a2d -> ad4681_buffer[3]));
     a2d -> current_sample = (uint16_t)((a2d -> ad4681_buffer[1] << 8) | (a2d -> ad4681_buffer[0]));
 
     /**
@@ -170,6 +171,17 @@ void get_ad4681_samples( ad4681Data * a2d ) {
         a2d -> current_f = (float)(a2d -> current_sample * A2D_VOLTAGE_PER_BIT);        // Raw A2D voltage value
         a2d -> current_f = (float)(a2d -> current_f / a2d -> cs_res_f);                 // Current = Voltage / Resistance 
     }
+
+    /**
+     * TODO begin test
+     * 
+     */
+    // a2d -> current_f = 1.2;
+    // a2d -> voltage_f = 2.2;
+    /**
+     * TODO end test
+     * 
+     */
 
     /**
      * Calculate power 

@@ -21,6 +21,10 @@ extern I2C_HandleTypeDef hi2c2;
 
 #define MAX_SCREEN_INDEX     4
 
+#define SCREEN_WIDTH            128         // Pixels wide
+#define SCREEN_HEIGHT           64          // Pixels tall
+#define MAX_BUFFER_SIZE         (SCREEN_WIDTH * ((SCREEN_HEIGHT + 7) / 8))
+
 typedef enum {
     SCREEN_MAIN,
     SCREEN_RUN_TIME_HR,
@@ -212,6 +216,9 @@ void writeOledString(const char * c, uint8_t color);
 
 //TODO need to comment
 void writeOledFloat(float number, uint8_t color);
+
+//TODO need to comment
+void writeOledDword(uint32_t number, uint8_t color);
 
 /**
  * FUNCTION: void drawChar(int16_t x, int16_t y, unsigned char c,

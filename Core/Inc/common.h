@@ -55,7 +55,7 @@ typedef enum
     READING_A2D
 } ErrorCodes;
 
-typedef struct {
+typedef struct errorCode {
     ErrorCodes error_code;
 } errorCode;
 

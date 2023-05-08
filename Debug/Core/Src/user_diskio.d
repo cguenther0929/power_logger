@@ -1,5 +1,9 @@
-Core/Src/fatfs_sd.o: ../Core/Src/fatfs_sd.c \
- ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
+Core/Src/user_diskio.o: ../Core/Src/user_diskio.c \
+ ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h \
+ ../Middlewares/Third_Party/FatFs/src/diskio.h \
+ ../Middlewares/Third_Party/FatFs/src/integer.h \
+ ../Middlewares/Third_Party/FatFs/src/ff.h ../FATFS/Target/ffconf.h \
+ ../Core/Inc/main.h ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h \
@@ -28,8 +32,21 @@ Core/Src/fatfs_sd.o: ../Core/Src/fatfs_sd.c \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Middlewares/Third_Party/FatFs/src/diskio.h \
- ../Middlewares/Third_Party/FatFs/src/integer.h ../Core/Inc/fatfs_sd.h
+ ../Core/Inc/ad4681.h ../Core/Inc/main.h ../Core/Inc/timer.h \
+ ../Core/Inc/oled_128b64.h ../Core/Inc/font.h ../Core/Inc/uart.h \
+ ../Core/Inc/config.h ../Core/Inc/common.h ../Core/Inc/fatfs_sd.h
+
+../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h:
+
+../Middlewares/Third_Party/FatFs/src/diskio.h:
+
+../Middlewares/Third_Party/FatFs/src/integer.h:
+
+../Middlewares/Third_Party/FatFs/src/ff.h:
+
+../FATFS/Target/ffconf.h:
+
+../Core/Inc/main.h:
 
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 
@@ -89,8 +106,20 @@ Core/Src/fatfs_sd.o: ../Core/Src/fatfs_sd.c \
 
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
 
-../Middlewares/Third_Party/FatFs/src/diskio.h:
+../Core/Inc/ad4681.h:
 
-../Middlewares/Third_Party/FatFs/src/integer.h:
+../Core/Inc/main.h:
+
+../Core/Inc/timer.h:
+
+../Core/Inc/oled_128b64.h:
+
+../Core/Inc/font.h:
+
+../Core/Inc/uart.h:
+
+../Core/Inc/config.h:
+
+../Core/Inc/common.h:
 
 ../Core/Inc/fatfs_sd.h:
